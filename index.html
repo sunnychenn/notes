@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF8F0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="隨手記">
+<title>隨手記</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== 顏色與字體：想換風格改這裡 ===== */
+:root{
+  --desk:#EFE8DC;      /* 書房底色 */
+  --paper:#FCF8F0;     /* 紙張 */
+  --card:#FFFDF9;
+  --ink:#3B342C;       /* 墨色 */
+  --sub:#6B6054;       /* 次要文字 */
+  --faint:#9A8F82;
+  --rule:#EEE5D7;      /* 橫格線 */
+  --margin:#E8C9B7;    /* 頁邊紅線 */
+  --line:#E3D9CA;
+  --serif:"Noto Serif TC",serif;
+  --sans:"Noto Sans TC",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--paper)}
+body{color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+svg{flex:none}
+.wrap{max-width:560px;margin:0 auto}
+.view{display:none;min-height:100dvh}
+.view.on{display:block}
+.icon-btn{border:none;background:none;width:44px;height:44px;display:grid;place-content:center;color:var(--sub)}
+.back{border:none;background:none;display:flex;align-items:center;gap:4px;min-height:44px;font-size:14px;color:inherit}
+.btn-ink{border:none;background:var(--ink);color:var(--card);height:44px;padding:0 22px;border-radius:99px;font-size:14px;font-weight:700;letter-spacing:.12em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* 小 icon 動作列、分類小按鈕、行內編輯（書頁、未分類、記憶卡共用）
+   圖示和按鈕看起來小小的，但用 ::after 把可點範圍撐到約 44px */
+.acts{display:flex;gap:4px;align-items:center}
+.act{position:relative;border:none;background:none;width:34px;height:30px;display:grid;place-content:center;color:var(--sub);border-radius:8px}
+.act::after,.chip::after,.mchip::after,.star::after{content:"";position:absolute;inset:-7px -4px}
+.act:active{background:rgba(60,45,30,.08)}
+.chips{display:flex;flex-wrap:wrap;gap:8px 6px;align-items:center;padding:6px 0 8px}
+.chips .lbl{font-size:12px;color:var(--sub);margin-right:2px}
+.chip{position:relative;border:none;height:28px;padding:0 11px;border-radius:99px;font-size:13px;color:#F8F0E2;letter-spacing:.06em}
+.chip.light{color:var(--ink)}
+.chip.ghost{background:transparent;color:var(--sub);border:1px solid var(--line)}
+.mchip{position:relative;border:none;height:28px;padding:0 10px 0 6px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-size:12px;display:flex;align-items:center;gap:5px}
+.mchip i{width:16px;height:16px;border-radius:50%}
+.inline-edit textarea{width:100%;min-height:96px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-family:var(--serif);font-size:16px;line-height:1.8;background:#fff;color:var(--ink);outline:none;resize:vertical}
+.inline-edit .r{display:flex;gap:8px;justify-content:flex-end;margin:4px 0 6px}
+.inline-edit button{border:none;height:30px;padding:0 14px;border-radius:99px;font-size:13px}
+.inline-edit .ok{background:var(--ink);color:var(--card)}
+.inline-edit .no{background:transparent;color:var(--sub)}
+
+/* ===== 首頁：空白書寫頁 ===== */
+#v-home{background:var(--paper);padding:calc(14px + env(safe-area-inset-top)) 0 40px}
+.home-top{display:flex;justify-content:space-between;align-items:center;padding:0 16px 0 28px}
+.home-date{font-family:var(--serif);font-size:14px;color:var(--sub);letter-spacing:.12em}
+.study-btn{display:flex;align-items:center;gap:6px;height:40px;padding:0 14px 0 12px;border:1px solid #D9CDBB;border-radius:99px;background:#F3ECE0;
+  font-family:var(--serif);font-size:14px;font-weight:600;letter-spacing:.15em;color:var(--ink);box-shadow:0 1px 3px rgba(60,45,30,.08)}
+#homeInput{display:block;width:100%;min-height:max(calc(36px * 9),calc(100dvh - 190px));margin-top:36px;padding:0 28px;border:none;outline:none;resize:none;
+  font-family:var(--serif);font-size:18px;line-height:36px;color:var(--ink);
+  background:transparent repeating-linear-gradient(to bottom,transparent 0,transparent 35px,var(--rule) 35px,var(--rule) 36px);background-attachment:local}
+#homeInput::placeholder{color:#B9AFA2}
+.home-foot{display:flex;justify-content:space-between;align-items:center;padding:20px 22px 0 28px}
+.home-foot .hint{font-family:var(--serif);font-size:12px;color:var(--faint)}
+
+/* ===== 書房 ===== */
+#v-study{background:var(--desk);padding:calc(10px + env(safe-area-inset-top)) 20px 60px}
+.study-head{display:flex;justify-content:space-between;align-items:center}
+.study-title{text-align:center}
+.study-title h1{font-family:var(--serif);font-weight:700;font-size:19px;letter-spacing:.14em}
+.study-title p{font-family:var(--serif);font-size:11px;color:var(--sub)}
+.label{display:flex;justify-content:space-between;align-items:baseline;margin-top:22px;font-family:var(--serif);font-size:13px;color:var(--sub);letter-spacing:.1em}
+.label small{font-family:var(--sans);font-size:12px;letter-spacing:0}
+.sort-hint{display:flex;align-items:center;gap:4px}
+.banner{margin-top:12px;border:1px dashed #D5C9B7;border-radius:14px;padding:8px 8px 8px 14px;font-size:13px;color:var(--sub);display:flex;align-items:center;gap:10px}
+.banner button{border:none;background:var(--card);border-radius:10px;padding:6px 12px;font-size:13px}
+
+.stack{position:relative;height:104px;margin-top:10px;border:none;background:none;width:100%;text-align:left;display:block}
+.stack .sheet-b,.stack .sheet-c{position:absolute;border-radius:6px;box-shadow:0 1px 3px rgba(60,45,30,.10)}
+.stack .sheet-c{left:14px;top:10px;right:6px;height:90px;background:#FBF7EF;transform:rotate(2deg)}
+.stack .sheet-b{left:8px;top:6px;right:10px;height:92px;background:#FDFAF3;transform:rotate(-1.5deg)}
+.stack .top{position:absolute;left:0;top:0;right:12px;height:96px;background:var(--card);border-radius:6px;padding:8px 16px;box-shadow:0 2px 8px rgba(60,45,30,.10)}
+.stack .when{display:block;font-size:11px;color:var(--sub);line-height:24px}
+.stack .txt{font-family:var(--serif);font-size:15px;line-height:28px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.loose-tools{display:flex;align-items:flex-start;gap:6px;margin-top:4px}
+.loose-tools .chips{flex:1}
+.empty-loose{margin-top:10px;font-family:var(--serif);font-size:13px;color:var(--faint);padding:14px 0}
+
+.books{margin-top:10px;display:flex;justify-content:center;align-items:flex-end;gap:clamp(8px,3vw,36px)}
+.book{border:none;padding:0;display:flex;width:108px;height:150px;border-radius:3px 9px 9px 3px;overflow:hidden;box-shadow:2px 6px 14px rgba(60,45,30,.22)}
+.book .spine{width:11px;box-shadow:inset -2px 0 3px rgba(0,0,0,.18)}
+.book .cover{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#F4E9D6;
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 2px,transparent 2px,transparent 5px)}
+.book .rule{width:46px;height:1px;background:rgba(244,233,214,.55)}
+.book .name{font-family:var(--serif);font-weight:600;font-size:18px;letter-spacing:.25em;padding-left:.25em}
+.book .pages{font-family:var(--serif);font-size:11px;color:#E9DAC1;margin-top:12px}
+.plank{height:7px;margin:0 2px;border-radius:2px;background:#CDBFA9;box-shadow:0 3px 6px rgba(60,45,30,.12)}
+
+/* 罐子 */
+.jar-btn{border:none;background:none;padding:0;display:flex;flex-direction:column;align-items:center}
+.jar-lid{display:block;border-radius:4px 4px 2px 2px;background:#B79A73;box-shadow:inset 0 -3px 0 rgba(0,0,0,.12)}
+.jar-neck{display:block;background:rgba(255,253,249,.45);border-left:1.5px solid rgba(255,255,255,.8);border-right:1.5px solid rgba(255,255,255,.8)}
+.jar-body{display:block;position:relative;background:rgba(255,253,249,.32);border:1.5px solid rgba(255,255,255,.85);overflow:hidden;
+  box-shadow:inset 0 0 18px rgba(255,255,255,.55),2px 8px 18px rgba(60,45,30,.16)}
+.jar-shine{position:absolute;border-radius:6px;background:rgba(255,255,255,.5);pointer-events:none;z-index:3}
+.ball{position:absolute;border:none;border-radius:50%;padding:0;transition:transform .15s,box-shadow .15s}
+.ball.sel{transform:scale(1.12);box-shadow:0 0 0 3px #FFFDF9,0 0 0 5px var(--ink);z-index:2}
+
+/* 牆面：便利貼 */
+/* 便利貼收合時＝半欄的 4/5 並排；展開時變全寬往下長 */
+.wall{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 18px;margin-top:16px;align-items:start}
+.sticky{position:relative;width:80%;justify-self:center;box-shadow:0 6px 14px rgba(60,45,30,.18)}
+.sticky:nth-child(odd){transform:rotate(-1.2deg)}
+.sticky:nth-child(even){transform:rotate(1.2deg)}
+.sticky.open{grid-column:1/-1;width:100%;transform:rotate(-.5deg)}
+.sticky .tape{position:absolute;top:-9px;left:50%;margin-left:-32px;width:64px;height:20px;background:rgba(255,253,249,.55);transform:rotate(3deg)}
+.sticky-head{width:100%;min-height:96px;border:none;background:none;padding:24px 10px 12px 16px;display:flex;justify-content:space-between;align-items:flex-start}
+.sticky.open .sticky-head{min-height:68px}
+.sticky-head span{font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:.3em}
+.sticky-head svg{margin-top:4px;transition:transform .2s}
+.sticky.open .sticky-head svg{transform:rotate(180deg)}
+.sticky-body{display:none;padding:0 6px 20px 10px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 43px,rgba(107,90,46,.18) 43px,rgba(107,90,46,.18) 44px)}
+.sticky.open .sticky-body{display:block}
+.todo{display:flex;align-items:center;gap:2px;min-height:44px;background:inherit}
+.todo .ck{width:40px;height:44px;flex:none;display:grid;place-content:center;cursor:pointer}
+.todo .ck input{width:20px;height:20px;margin:0;accent-color:var(--ink)}
+.todo .t{flex:1;min-width:0;font-family:var(--serif);font-size:16px;line-height:1.5;padding:10px 0;word-break:break-word;cursor:text;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.todo.done .t{color:#7A6E5E;text-decoration:line-through;text-decoration-thickness:1.5px;text-decoration-color:var(--ink)}
+.todo .t-edit{flex:1;min-width:0;border:none;border-bottom:1px solid rgba(60,45,30,.35);background:transparent;outline:none;font-family:var(--serif);font-size:16px;  /* 16px 以下 iPhone 會自動放大畫面 */padding:8px 0;color:var(--ink)}
+.todo .x{border:none;background:none;width:36px;height:44px;color:#6B5A2E;font-size:14px;opacity:.6;flex:none}
+.handle{width:32px;height:44px;flex:none;-webkit-touch-callout:none;user-select:none;display:grid;place-content:center;color:#6B5A2E;opacity:.55;touch-action:none;cursor:grab}
+.todo.dragging{box-shadow:0 6px 14px rgba(60,45,30,.22);border-radius:6px;position:relative;z-index:2;transform:scale(1.02);transition:transform .12s}
+.todo-add{display:flex;align-items:center;gap:2px;height:44px}
+.todo-add span{width:40px;text-align:center;color:#6B5A2E}
+.todo-add input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:var(--serif);font-size:16px;color:var(--ink)}
+.todo-clear{border:none;background:none;margin-top:6px;font-size:12px;color:#6B5A2E;padding:6px 0}
+.sticky .fold{position:absolute;right:0;bottom:0;width:22px;height:22px;box-shadow:-1px -1px 2px rgba(60,45,30,.12)}
+
+/* ===== 書的內頁 ===== */
+#v-book{padding-top:calc(12px + env(safe-area-inset-top));padding-right:8px}
+.book-head{display:flex;justify-content:space-between;align-items:center;padding:0 8px 10px 14px;color:#F4E9D6}
+.book-head h2{font-family:var(--serif);font-weight:600;font-size:17px;letter-spacing:.3em;padding-left:.3em}
+.filter{min-height:36px;min-width:80px;padding:0 12px;border-radius:99px;border:1px solid rgba(244,233,214,.5);background:transparent;color:#F4E9D6;font-size:13px;display:flex;align-items:center;justify-content:center;gap:5px}
+.filter.on{background:#F4E9D6;border-color:#F4E9D6;font-weight:700}
+.page{position:relative;min-height:calc(100dvh - 70px);background:var(--paper);border-radius:0 14px 0 0;padding:20px 14px 150px 0;
+  box-shadow:inset 18px 0 22px -14px rgba(60,45,30,.3),0 -2px 10px rgba(0,0,0,.12)}
+.page .mline{position:absolute;top:0;bottom:0;left:76px;width:1px;background:var(--margin)}
+.lines{position:relative;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,var(--rule) 31px,var(--rule) 32px)}
+.day{display:flex;padding-bottom:32px}
+/* 日期、星星與第一行文字對齊；時間小字在文字上方 */
+.day-date{width:76px;flex:none;padding-right:12px;padding-top:32px;text-align:right}
+.day-date b{display:block;font-family:var(--serif);font-weight:600;font-size:16px;line-height:32px;letter-spacing:.04em}
+.day-date span{display:block;font-size:12px;line-height:20px;color:var(--sub)}
+.day-entries{flex:1;min-width:0;padding-left:14px}
+.e-time{height:32px;display:flex;align-items:flex-end;padding-bottom:1px;font-size:12px;color:var(--sub);letter-spacing:.06em}
+.e-row{display:flex;align-items:flex-start}
+.e-row .e-text{flex:1;min-width:0}
+.star{position:relative;border:none;background:none;width:44px;height:32px;display:flex;align-items:center;justify-content:flex-end;padding:0 2px}
+.e-text{font-family:var(--serif);font-size:16px;line-height:32px;white-space:pre-wrap;word-break:break-word;cursor:pointer}
+.e-tools{background:var(--paper);margin-left:-6px;padding-left:6px;border-radius:8px}
+.page-empty{padding:40px 0 0 90px;font-family:var(--serif);color:var(--faint);line-height:32px}
+.pageno{text-align:center;font-family:var(--serif);font-size:12px;color:var(--faint);letter-spacing:.2em;margin-top:8px}
+
+.composer{position:fixed;left:0;right:0;bottom:0;padding:16px 12px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(rgba(252,248,240,0),var(--paper) 35%);z-index:5}
+.box{display:flex;gap:6px;align-items:flex-end;background:var(--card);border:1px solid #EADFCF;border-radius:22px;padding:6px 6px 6px 14px;box-shadow:0 4px 16px rgba(60,45,30,.08)}
+.box textarea{flex:1;border:none;outline:none;resize:none;background:transparent;font-family:var(--serif);font-size:16px;line-height:1.7;padding:7px 2px;max-height:160px;color:var(--ink)}
+.box .btn-ink{height:40px;padding:0 18px}
+
+/* ===== 記憶罐子 ===== */
+#v-jar{background:var(--desk);padding:calc(10px + env(safe-area-inset-top)) 20px 40px}
+.jar-big{display:flex;flex-direction:column;align-items:center;margin-top:6px}
+.mem-card{margin-top:18px;background:var(--paper);border-radius:16px;box-shadow:0 2px 10px rgba(60,45,30,.08);padding:10px 12px 6px 0;display:flex}
+.mem-card .day-date{width:70px;border-right:1px solid var(--margin)}
+.mem-body{flex:1;min-width:0;padding-left:14px}
+.mem-card .day-date{padding-top:30px}
+.mem-meta{display:flex;align-items:flex-end;gap:8px;height:30px;padding-bottom:3px;font-size:12px}
+.mem-meta i{width:12px;height:12px;border-radius:50%}
+.mem-text{font-family:var(--serif);font-size:16px;line-height:30px;white-space:pre-wrap;word-break:break-word;min-height:60px}
+.mem-nav{display:flex;justify-content:space-between;align-items:center}
+.mem-nav .step{display:flex;gap:10px}
+.mem-nav .step button{border:none;background:none;font-size:13px;color:var(--sub);min-height:32px;padding:0 4px}
+.mem-nav .step button:disabled{opacity:.3}
+.mem-compose{margin-top:16px;background:var(--card);border-radius:22px;padding:12px 10px 10px;box-shadow:0 4px 20px rgba(60,45,30,.10)}
+.mem-compose .q{font-family:var(--serif);font-size:12px;color:var(--sub);padding-left:6px;letter-spacing:.06em}
+.moods{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-top:6px}
+.mood{border:none;background:none;min-height:52px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0}
+.mood i{width:26px;height:26px;border-radius:50%;box-shadow:0 1px 3px rgba(60,45,30,.18)}
+.mood span{font-size:11px;color:var(--sub)}
+.mood.on i{box-shadow:0 0 0 2px #FFFDF9,0 0 0 4px var(--ink)}
+.mood.on span{color:var(--ink);font-weight:700}
+.mem-compose .row{display:flex;gap:6px;align-items:flex-end;border-top:1px solid #EFE7DA;margin-top:4px;padding:8px 0 0 6px}
+.mem-compose textarea{flex:1;border:none;outline:none;resize:none;background:transparent;font-family:var(--serif);font-size:16px;line-height:1.7;padding:7px 2px;max-height:140px;color:var(--ink)}
+.mem-compose .btn-ink{height:40px;padding:0 14px;letter-spacing:.06em;flex:none}
+
+/* ===== 設定面板 ===== */
+.sheet-bg{position:fixed;inset:0;background:rgba(40,34,28,.32);display:none;z-index:20;align-items:flex-end;justify-content:center}
+.sheet-bg.show{display:flex}
+.sheet{background:var(--desk);width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom));max-height:88dvh;overflow-y:auto}
+.sheet-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sheet-top h3{font-family:var(--serif);font-weight:600;font-size:17px;letter-spacing:.1em}
+.sec{background:var(--card);border-radius:16px;padding:12px 14px;margin-bottom:12px}
+.sec h4{font-size:14px;font-weight:700;margin-bottom:4px}
+.sec .hint{font-size:12px;color:var(--sub);margin-bottom:8px}
+.f-row{display:flex;align-items:center;gap:8px;padding:5px 0}
+.f-row label{font-size:13px;color:var(--sub);width:64px;flex:none}
+.f-row input[type=text],.f-row input[type=number]{flex:1;min-width:0;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:#fff;color:var(--ink)}
+.f-row input[type=color]{width:40px;height:34px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:2px;flex:none}
+.btn-s{border:none;background:var(--ink);color:var(--card);padding:8px 14px;border-radius:12px;font-size:14px;margin:4px 6px 4px 0}
+.btn-s.light{background:var(--desk);color:var(--ink)}
+
+.toast{position:fixed;bottom:calc(96px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:7px 18px;border-radius:99px;
+  font-family:var(--serif);font-size:14px;letter-spacing:.05em;opacity:0;transition:opacity .25s;z-index:30;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+/* 刪除後的「復原」提示 */
+.undo{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);display:flex;align-items:center;gap:6px;
+  background:var(--ink);color:var(--card);border-radius:99px;padding:4px 4px 4px 18px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:31;white-space:nowrap}
+.undo.show{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+.undo button{border:none;background:none;color:#F2E2A7;font-weight:700;height:40px;padding:0 14px;letter-spacing:.1em}
+
+/* 整理模式 */
+.sort-count{font-family:var(--sans);font-size:13px;font-weight:400;color:var(--sub);letter-spacing:0;margin-left:6px}
+.sort-card{background:var(--card);border-radius:8px;padding:12px 18px 16px;box-shadow:0 3px 10px rgba(60,45,30,.12);transform:rotate(-.6deg);margin:6px 2px 4px;
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,var(--rule) 31px,var(--rule) 32px);background-position:0 36px}
+.sort-card .when{font-size:12px;color:var(--sub);line-height:24px}
+.sort-card .txt{font-family:var(--serif);font-size:17px;line-height:32px;white-space:pre-wrap;word-break:break-word;max-height:40dvh;overflow-y:auto}
+.sort-card.enter{animation:cardIn .28s ease-out}
+@keyframes cardIn{from{opacity:0;transform:translateX(40px) rotate(2deg)}to{opacity:1;transform:rotate(-.6deg)}}
+.sort-foot{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.skip{border:none;background:none;min-height:44px;padding:0 6px;font-size:14px;color:var(--sub)}
+.sort-done{text-align:center;padding:36px 0 20px;font-family:var(--serif);color:var(--sub);line-height:2}
+.sort-btn{border:none;background:none;display:flex;align-items:center;gap:4px;min-height:36px;padding:0 2px;font-family:var(--sans);font-size:12px;color:var(--sub)}
+
+/* 搜尋 */
+#v-search{background:var(--desk);padding:calc(10px + env(safe-area-inset-top)) 20px 60px}
+.search-bar{display:flex;align-items:center;gap:6px}
+.search-box{flex:1;display:flex;align-items:center;gap:8px;background:var(--card);border-radius:99px;padding:0 14px;height:44px;color:var(--sub);box-shadow:0 1px 3px rgba(60,45,30,.08)}
+.search-box input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:var(--serif);font-size:16px;color:var(--ink)}
+.result{display:block;width:100%;text-align:left;border:none;background:var(--card);border-radius:14px;padding:10px 16px 12px;margin-top:10px;box-shadow:0 1px 4px rgba(60,45,30,.06)}
+.result .meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub)}
+.result .tagc{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 8px;border-radius:99px;font-size:11px;color:#F8F0E2}
+.result .tagc.light{color:var(--ink)}
+.result .tagc i{width:9px;height:9px;border-radius:50%}
+.result p{font-family:var(--serif);font-size:15px;line-height:1.8;margin-top:4px;word-break:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.result mark{background:#F2E2A7;color:inherit;border-radius:2px;padding:0 1px}
+.search-empty{text-align:center;padding:40px 0;font-family:var(--serif);color:var(--faint)}
+.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%,40%{background:rgba(242,226,167,.7)}100%{background:transparent}}
+</style>
+</head>
+<body>
+
+<!-- 首頁：空白書寫頁 -->
+<section class="view on" id="v-home"><div class="wrap">
+  <div class="home-top">
+    <span class="home-date" id="homeDate"></span>
+    <button class="study-btn" onclick="go('study')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v16M8 4v16"/><path d="M12.5 5.2l3.8-1 3.9 14.6-3.8 1z"/><path d="M3 20.5h18"/></svg>
+      書房
+    </button>
+  </div>
+  <label for="homeInput" class="sr">寫下此刻的想法</label>
+  <textarea id="homeInput" placeholder="此刻在想什麼…"></textarea>
+  <div class="home-foot">
+    <span class="hint">寫完先放進未分類，之後再整理</span>
+    <button class="btn-ink" onclick="saveHome()">收藏</button>
+  </div>
+</div></section>
+
+<!-- 書房 -->
+<section class="view" id="v-study"><div class="wrap" id="study"></div></section>
+
+<!-- 書的內頁 -->
+<section class="view" id="v-book"><div class="wrap">
+  <div class="book-head" id="bookHead"></div>
+  <div class="page">
+    <div class="mline"></div>
+    <div id="bookList"></div>
+    <div class="pageno" id="pageNo"></div>
+  </div>
+</div>
+<div class="composer"><div class="wrap"><div class="box">
+  <label for="bookInput" class="sr">寫進這本書</label>
+  <textarea id="bookInput" rows="1" placeholder="寫進這本書…"></textarea>
+  <button class="btn-ink" id="bookSave" onclick="saveBook()">收藏</button>
+</div></div></div>
+</section>
+
+<!-- 記憶罐子 -->
+<section class="view" id="v-jar"><div class="wrap" id="jar"></div></section>
+
+<!-- 搜尋 -->
+<section class="view" id="v-search"><div class="wrap">
+  <div class="search-bar">
+    <button class="back" onclick="back()" aria-label="回到書房" style="width:36px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <label class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
+      <span class="sr">搜尋全部筆記</span>
+      <input id="searchInput" type="search" placeholder="搜尋全部筆記…" enterkeyhint="search" oninput="ui.q=this.value;renderResults()">
+    </label>
+  </div>
+  <div id="results"></div>
+</div></section>
+
+<!-- 設定面板 -->
+<div class="sheet-bg" id="sheetBg" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet" id="sheet"></div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="undo" id="undo" role="status"><span id="undoMsg">已刪除</span><button onclick="undoDelete()">復原</button></div>
+<input type="file" id="restoreFile" accept=".json" hidden onchange="restore(this.files[0]);this.value=''">
+
+<script>
+/* ===== 預設值：分類固定五個（名稱可在設定裡改），心情七個 ===== */
+const KEY = 'quicknotes_v1';   // 沿用前幾版的資料
+const CATS = [
+  { id: 'idea',   name: '靈感', color: '#8A5A3C' },
+  { id: 'feel',   name: '隨筆', color: '#66715A' },
+  { id: 'memory', name: '記憶', color: '#B79A73' },
+  { id: 'todo',   name: '待辦', color: '#F2E2A7', light: true },
+  { id: 'buy',    name: '待買', color: '#EBCFC3', light: true },
+];
+const LISTS = ['todo', 'buy'];   // 便利貼形式的清單（可打勾、可拖曳排序）
+const MOODS = [
+  { id: 'joy',   name: '樂樂', color: '#E2BE6A' },
+  { id: 'sad',   name: '憂憂', color: '#8FA9C4' },
+  { id: 'ennui', name: '悶悶', color: '#A8A39B' },
+  { id: 'anx',   name: '阿焦', color: '#E0A46E' },
+  { id: 'anger', name: '怒怒', color: '#C9786A' },
+  { id: 'fear',  name: '驚驚', color: '#A894BE' },
+  { id: 'calm',  name: '平靜', color: '#9DB38E' },
+];
+const SPINE = { idea: '#6E4630', feel: '#4E5843' };
+const FOLD = { todo: '#E3CF86', buy: '#DDB9AB' };
+
+/* 線條 icon */
+const svg = (d, s = 18, w = 1.6) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const I = {
+  back:  svg('<path d="M15 5l-7 7 7 7"/>', 18, 1.8),
+  edit:  svg('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>', 17),
+  move:  svg('<path d="M4 12h11"/><path d="M11 7l5 5-5 5"/><path d="M20 5v14"/>', 17),
+  trash: svg('<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>', 17),
+  gear:  svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>', 22, 1.5),
+  chev:  svg('<path d="M6 9l6 6 6-6"/>', 20),
+  search: svg('<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>', 21, 1.6),
+  tag:   svg('<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.4"/>', 14, 1.7),
+  grip:  `<svg width="14" height="18" viewBox="0 0 14 18" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="1.6"/><circle cx="10" cy="4" r="1.6"/><circle cx="4" cy="9" r="1.6"/><circle cx="10" cy="9" r="1.6"/><circle cx="4" cy="14" r="1.6"/><circle cx="10" cy="14" r="1.6"/></svg>`,
+  star:  '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+};
+
+let db = load();
+const ui = {
+  view: 'home', book: 'idea', starOnly: false,
+  openNote: null,   // 展開了小 icon 的那則
+  moveFor: null,    // 正在選「移動到」的那則
+  moodFor: null,    // 移進記憶時，正在選心情的那則
+  editing: null,    // 正在行內編輯的那則
+  jarSel: null, mood: 'calm', open: { todo: false, buy: false },
+  sorting: false, sortQueue: [], sortIdx: 0, sortAnim: false,   // 整理模式
+  q: '', focusId: null,                                          // 搜尋
+};
+
+/* ===== 小工具 ===== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const cat = id => CATS.find(c => c.id === id);
+const catName = id => db.cats.find(c => c.id === id)?.name ?? '未分類';
+const moodOf = id => db.moods.find(m => m.id === id) || db.moods.find(m => m.id === 'calm') || db.moods[0];
+const md = t => { const d = new Date(t); return `${pad(d.getMonth()+1)}/${pad(d.getDate())}`; };
+const wd = t => { const d = new Date(t); const w = '週' + '日一二三四五六'[d.getDay()]; return d.getFullYear() === new Date().getFullYear() ? w : `${d.getFullYear()} ${w}`; };
+const hm = t => { const d = new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const full = t => { const d = new Date(t); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${hm(t)}`; };
+const notesIn = c => db.notes.filter(n => n.cat === c);
+const byOrder = (a, b) => (a.order ?? a.created) - (b.order ?? b.created);
+const findNote = id => db.notes.find(n => n.id === id);
+const ballBg = c => `radial-gradient(circle at 32% 28%,rgba(255,255,255,.8) 0,rgba(255,255,255,0) 42%),radial-gradient(circle at 70% 78%,rgba(60,45,30,.14) 0,rgba(60,45,30,0) 55%),${c}`;
+const newId = () => 'n' + Date.now() + Math.random().toString(36).slice(2, 6);
+const resetTools = () => { ui.openNote = ui.moveFor = ui.moodFor = ui.editing = null; };
+
+function load() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  if (!d || !Array.isArray(d.notes)) d = { notes: [] };
+  // 從前幾版升級：分類固定成五個，其他自訂分類的筆記移回未分類
+  const old = Array.isArray(d.cats) ? d.cats : [];
+  d.cats = CATS.map(c => {
+    let name = old.find(o => o.id === c.id)?.name || c.name;
+    if (name === '感觸') name = '隨筆';
+    if (name === '想做的事') name = '待辦';
+    return { id: c.id, name };
+  });
+  d.notes.forEach(n => {
+    if (!CATS.some(c => c.id === n.cat)) n.cat = null;
+    n.star = !!n.star; n.done = !!n.done;
+    if (n.cat === 'memory' && !n.mood) n.mood = 'calm';
+  });
+  if (!Array.isArray(d.moods) || !d.moods.length) d.moods = MOODS.map(m => ({ ...m }));
+  d.title = d.title || '隨手記';
+  d.remindDays = d.remindDays || 7;
+  d.lastExport = d.lastExport || null;
+  return d;
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { toast('儲存失敗，請先匯出備份'); } }
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 1600);
+}
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+
+/* ===== 換頁（支援手機的返回手勢） ===== */
+function go(view, extra = {}) {
+  resetTools(); Object.assign(ui, extra, { view });
+  history.pushState({ view, book: ui.book }, '');
+  show();
+}
+function back() { history.back(); }
+window.addEventListener('popstate', e => {
+  const s = e.state || { view: 'home' };
+  ui.view = s.view; if (s.book) ui.book = s.book; resetTools();
+  closeSheet(); show();
+});
+function show() {
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + ui.view));
+  document.title = db.title;
+  const theme = { home: '#FCF8F0', study: '#EFE8DC', jar: '#EFE8DC', search: '#EFE8DC', book: cat(ui.book)?.color };
+  document.querySelector('meta[name=theme-color]').content = theme[ui.view] || '#FCF8F0';
+  render();
+  window.scrollTo(0, 0);
+  if (ui.view === 'search') { $('#searchInput').value = ui.q; renderResults(); }
+  if (ui.focusId) {   // 從搜尋結果跳過來：捲到那一則並閃一下
+    const el = document.querySelector(`[data-nid="${ui.focusId}"]`);
+    if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('flash'); }
+    ui.focusId = null;
+  }
+}
+function render() {
+  if (ui.view === 'home') renderHome();
+  if (ui.view === 'study') renderStudy();
+  if (ui.view === 'book') renderBook();
+  if (ui.view === 'jar') renderJar();
+  if (ui.sorting) renderSort();
+}
+
+/* ===== 共用：小 icon、移動到、選心情、行內編輯 ===== */
+function toolsHTML(n) {
+  if (ui.editing === n.id) return `<div class="inline-edit">
+      <label for="ie-${n.id}" class="sr">修改內容</label>
+      <textarea id="ie-${n.id}">${esc(n.text)}</textarea>
+      <div class="r"><button class="no" onclick="ui.editing=null;render()">取消</button><button class="ok" onclick="saveInline('${n.id}')">儲存</button></div>
+    </div>`;
+  if (ui.moodFor === n.id) return `<div class="chips"><span class="lbl">什麼心情？</span>
+      ${db.moods.map(m => `<button class="mchip" onclick="moveTo('${n.id}','memory','${m.id}')"><i style="background:${ballBg(m.color)}"></i>${esc(m.name)}</button>`).join('')}
+      <button class="chip ghost" onclick="ui.moodFor=null;render()">返回</button></div>`;
+  if (ui.moveFor === n.id) return `<div class="chips"><span class="lbl">移動到</span>${destChips(n)}
+      <button class="chip ghost" onclick="ui.moveFor=null;render()">取消</button></div>`;
+  return `<div class="acts">
+      <button class="act" onclick="startEdit('${n.id}')" aria-label="編輯" title="編輯">${I.edit}</button>
+      <button class="act" onclick="ui.moveFor='${n.id}';render()" aria-label="移動到" title="移動到">${I.move}</button>
+      <button class="act" onclick="delNote('${n.id}')" aria-label="刪除" title="刪除">${I.trash}</button>
+    </div>`;
+}
+function destChips(n) {
+  return CATS.filter(c => c.id !== n.cat).map(c =>
+      `<button class="chip ${c.light ? 'light' : ''}" style="background:${c.color}" onclick="moveTo('${n.id}','${c.id}')">${esc(catName(c.id))}</button>`).join('')
+    + (n.cat ? `<button class="chip light" style="background:var(--card);border:1px solid var(--line)" onclick="moveTo('${n.id}',null)">未分類</button>` : '');
+}
+function moveTo(id, c, mood) {
+  const n = findNote(id);
+  if (c === 'memory' && !mood) { ui.moveFor = null; ui.moodFor = id; return render(); }
+  n.cat = c;
+  if (c === 'memory') n.mood = mood;
+  if (!LISTS.includes(c)) n.done = false;
+  if (LISTS.includes(c)) n.order = Math.max(0, ...notesIn(c).map(x => x.order ?? 0)) + 1;
+  advanceSort(id);
+  save(); resetTools(); render();
+  toast(c ? `收進「${catName(c)}」了` : '放回未分類了');
+}
+function startEdit(id) {
+  resetTools(); ui.editing = id; ui.openNote = id; render();
+  const el = $('#ie-' + id); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+}
+function saveInline(id) {
+  const t = $('#ie-' + id).value.trim();
+  if (!t) return toast('內容不能空白');
+  const n = findNote(id); n.text = t; n.updated = Date.now();
+  ui.editing = null; save(); render();
+}
+/* 刪除：不跳確認框，直接刪掉，底部出現「復原」可以救回來 */
+let undoBuf = null;
+function removeNotes(ids, msg) {
+  const gone = db.notes.filter(n => ids.includes(n.id));
+  if (!gone.length) return;
+  db.notes = db.notes.filter(n => !ids.includes(n.id));
+  undoBuf = gone;
+  save(); resetTools(); render();
+  $('#undoMsg').textContent = msg;
+  const u = $('#undo'); u.classList.add('show');
+  clearTimeout(u._h); u._h = setTimeout(() => { u.classList.remove('show'); undoBuf = null; }, 5000);
+}
+function undoDelete() {
+  if (!undoBuf) return;
+  db.notes.push(...undoBuf); undoBuf = null;
+  $('#undo').classList.remove('show');
+  save(); render(); toast('救回來了');
+}
+function delNote(id) { advanceSort(id); removeNotes([id], '已刪除'); }
+
+/* ===== 首頁 ===== */
+function renderHome() { $('#homeDate').textContent = `${md(Date.now())}　${wd(Date.now())}`; }
+function saveHome() {
+  const el = $('#homeInput'), t = el.value.trim();
+  if (!t) return;
+  db.notes.push({ id: newId(), text: t, cat: null, star: false, done: false, mood: null, created: Date.now() });
+  save(); el.value = ''; autoGrow(el); el.blur();
+  toast('放進未分類了');
+}
+
+/* ===== 罐子：越舊的在越底下，放不下時只顯示最近的 ===== */
+function slots(W, H, b, top) {
+  const out = [], step = b * 0.87, nEven = Math.floor((W - 14) / b);
+  for (let y = H - b - 6, r = 0; y >= top; y -= step, r++) {
+    const n = r % 2 ? nEven - 1 : nEven, x0 = (W - n * b) / 2;
+    for (let i = 0; i < n; i++) out.push([x0 + i * b, y]);
+  }
+  return out;
+}
+function jarHTML(big) {
+  const s = big
+    ? { W: 250, H: 300, b: 42, top: 24, lid: [172, 26], neck: [152, 12], r: '34px 34px 40px 40px', shine: [16, 22, 10, 220] }
+    : { W: 108, H: 130, b: 20, top: 10, lid: [74, 14], neck: [64, 7], r: '18px 18px 22px 22px', shine: [9, 10, 6, 84] };
+  const spots = slots(s.W - 3, s.H - 3, s.b, s.top);
+  const mem = notesIn('memory').sort((a, b) => a.created - b.created).slice(-spots.length);
+  const balls = mem.map((m, i) => {
+    const [x, y] = spots[i];
+    const style = `left:${x + ((i * 37) % 5) - 2}px;top:${y + ((i * 13) % 3) - 1}px;width:${s.b}px;height:${s.b}px;background:${ballBg(moodOf(m.mood).color)}`;
+    return big
+      ? `<button class="ball ${m.id === ui.jarSel ? 'sel' : ''}" style="${style}" onclick="pickMem('${m.id}')" aria-label="記憶 ${md(m.created)} ${esc(moodOf(m.mood).name)}"></button>`
+      : `<span class="ball" style="${style}"></span>`;
+  }).join('');
+  return `<span class="jar-lid" style="width:${s.lid[0]}px;height:${s.lid[1]}px"></span>
+    <span class="jar-neck" style="width:${s.neck[0]}px;height:${s.neck[1]}px"></span>
+    <span class="jar-body" style="width:${s.W}px;height:${s.H}px;border-radius:${s.r}">${balls}
+      <span class="jar-shine" style="left:${s.shine[0]}px;top:${s.shine[1]}px;width:${s.shine[2]}px;height:${s.shine[3]}px"></span></span>`;
+}
+
+/* ===== 書房：書架＋牆面 ===== */
+function renderStudy() {
+  const loose = notesIn(null).sort((a, b) => b.created - a.created);
+  const top = loose[0];
+  const book = id => `<button class="book" onclick="go('book',{book:'${id}',starOnly:false})" aria-label="翻開${esc(catName(id))}">
+      <span class="spine" style="background:${SPINE[id]}"></span>
+      <span class="cover" style="background-color:${cat(id).color}"><span class="rule"></span><span class="name">${esc(catName(id))}</span><span class="rule"></span><span class="pages">${notesIn(id).length} 頁</span></span>
+    </button>`;
+  const looseOpen = top && ui.openNote === top.id;
+
+  $('#study').innerHTML = `
+    <div class="study-head">
+      <button class="back" onclick="back()">${I.back}空白頁</button>
+      <div class="study-title"><h1>${esc(db.title)}</h1><p>已收藏 ${db.notes.length} 則</p></div>
+      <div style="display:flex">
+        <button class="icon-btn" onclick="go('search')" aria-label="搜尋">${I.search}</button>
+        <button class="icon-btn" onclick="openSettings()" aria-label="設定">${I.gear}</button>
+      </div>
+    </div>
+    ${bannerHTML()}
+    <div class="label"><span>尚未分類的隨手記</span>${loose.length ? `<button class="sort-btn" onclick="startSort()">${I.tag}分類 ${loose.length > 1 ? `· ${loose.length} 張` : ''}</button>` : ''}</div>
+    ${top ? `<button class="stack" onclick="toggleLoose('${top.id}')" aria-expanded="${looseOpen}" aria-label="分類這張隨手記">
+        ${loose.length > 2 ? '<span class="sheet-c"></span>' : ''}${loose.length > 1 ? '<span class="sheet-b"></span>' : ''}
+        <span class="top"><span class="when">${md(top.created)} ${wd(top.created)}　${hm(top.created)}</span><span class="txt">${esc(top.text)}</span></span>
+      </button>
+      ${looseOpen ? looseToolsHTML(top) : ''}`
+      : '<div class="empty-loose">都分類好了。</div>'}
+
+    <div class="label"><span>書架</span></div>
+    <div class="books">
+      ${book('idea')}${book('feel')}
+      <button class="jar-btn" onclick="go('jar',{jarSel:null})" aria-label="打開${esc(catName('memory'))}罐子">${jarHTML(false)}</button>
+    </div>
+    <div class="plank"></div>
+
+    <div class="label"><span>牆面</span></div>
+    <div class="wall">${LISTS.map(stickyHTML).join('')}</div>`;
+}
+function toggleLoose(id) { const was = ui.openNote === id; resetTools(); ui.openNote = was ? null : id; renderStudy(); }
+function looseToolsHTML(n) {
+  if (ui.editing === n.id || ui.moodFor === n.id) return `<div style="margin-top:6px">${toolsHTML(n)}</div>`;
+  return `<div class="loose-tools">
+      <div class="chips">${destChips(n)}</div>
+      <div class="acts">
+        <button class="act" onclick="startEdit('${n.id}')" aria-label="編輯" title="編輯">${I.edit}</button>
+        <button class="act" onclick="delNote('${n.id}')" aria-label="刪除" title="刪除">${I.trash}</button>
+      </div>
+    </div>`;
+}
+function bannerHTML() {
+  const fresh = db.notes.filter(n => n.created > (db.lastExport || 0));
+  if (!fresh.length) return '';
+  const ref = db.lastExport || Math.min(...fresh.map(n => n.created));
+  const days = Math.floor((Date.now() - ref) / 864e5);
+  if (days < db.remindDays) return '';
+  return `<div class="banner"><span style="flex:1">有 ${fresh.length} 則新筆記還沒匯出${db.lastExport ? `（距上次 ${days} 天）` : ''}</span><button onclick="exportCSV(true)">匯出</button></div>`;
+}
+
+/* 便利貼清單：打勾劃掉、點文字編輯、拖曳 ⋮⋮ 排序 */
+function stickyHTML(c) {
+  const items = notesIn(c).sort(byOrder);
+  const doneN = items.filter(t => t.done).length;
+  const open = ui.open[c];
+  return `<div class="sticky ${open ? 'open' : ''}" style="background:${cat(c).color}">
+    <span class="tape"></span>
+    <button class="sticky-head" onclick="ui.open['${c}']=!ui.open['${c}'];ui.editing=null;renderStudy()" aria-expanded="${open}">
+      <span>${esc(catName(c))}</span><span style="color:#6B5A2E;letter-spacing:0">${I.chev}</span>
+    </button>
+    <div class="sticky-body">
+      <div class="list" data-cat="${c}">
+        ${items.map(t => `<div class="todo ${t.done ? 'done' : ''}" data-id="${t.id}" data-nid="${t.id}"${ui.editing === t.id ? '' : 'onpointerdown="rowDown(event)"'}>
+          <label class="ck"><input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleDone('${t.id}')" aria-label="完成"></label>
+          ${ui.editing === t.id
+            ? `<input class="t-edit" id="te-${t.id}" value="${esc(t.text)}" aria-label="修改" enterkeyhint="done"
+                 onkeydown="if(event.key==='Enter'&&!event.isComposing)this.blur();if(event.key==='Escape'){ui.editing=null;renderStudy()}"
+                 onblur="saveItem('${t.id}',this.value)">`
+            : `<span class="t">${esc(t.text)}</span>`}
+          <button class="x" onclick="delNote('${t.id}')" aria-label="刪除">✕</button>
+          <span class="handle" aria-label="按住拖曳排序">${I.grip}</span>
+        </div>`).join('')}
+      </div>
+      <div class="todo-add"><span>＋</span>
+        <label for="add-${c}" class="sr">新增一項</label>
+        <input id="add-${c}" placeholder="再寫一件…" enterkeyhint="done" onkeydown="if(event.key==='Enter'&&!event.isComposing)addItem('${c}')">
+      </div>
+      ${doneN ? `<button class="todo-clear" onclick="clearDone('${c}')">撕掉劃掉的 ${doneN} 件</button>` : ''}
+    </div>
+    <span class="fold" style="background:linear-gradient(135deg,${FOLD[c]} 0%,${FOLD[c]} 50%,var(--desk) 50%)"></span>
+  </div>`;
+}
+function toggleDone(id) { const n = findNote(id); n.done = !n.done; save(); renderStudy(); }
+function editItem(id) {
+  ui.editing = id; renderStudy();
+  const el = $('#te-' + id); el.focus(); el.setSelectionRange(el.value.length, el.value.length);
+}
+function saveItem(id, v) {
+  if (ui.editing !== id) return;
+  v = v.trim(); const n = findNote(id);
+  if (v && n) { n.text = v; n.updated = Date.now(); save(); }
+  ui.editing = null; renderStudy();
+}
+function addItem(c) {
+  const el = $('#add-' + c), t = el.value.trim();
+  if (!t) return;
+  const order = Math.max(0, ...notesIn(c).map(x => x.order ?? 0)) + 1;
+  db.notes.push({ id: newId(), text: t, cat: c, star: false, done: false, mood: null, created: Date.now(), order });
+  save(); renderStudy(); $('#add-' + c).focus();
+}
+function clearDone(c) {
+  const ids = notesIn(c).filter(t => t.done).map(t => t.id);
+  removeNotes(ids, `撕掉了 ${ids.length} 件`);
+}
+
+/* 拖曳排序：按住文字或 ⋮⋮ 約 0.3 秒才開始拖；短按文字＝編輯；按著就移動＝捲動畫面 */
+const HOLD_MS = 300;
+let press = null, drag = null;
+function rowDown(e) {
+  if (e.button > 0 || e.target.closest('input,button,.ck')) return;
+  const row = e.currentTarget;
+  press = { row, x: e.clientX, y: e.clientY, onText: !!e.target.closest('.t'), timer: setTimeout(() => beginDrag(row), HOLD_MS) };
+  document.addEventListener('pointermove', pressMove, { passive: false });
+  document.addEventListener('pointerup', pressUp);
+  document.addEventListener('pointercancel', pressEnd);
+}
+function beginDrag(row) {
+  drag = { row, list: row.parentElement };
+  row.classList.add('dragging');
+  if (navigator.vibrate) navigator.vibrate(12);
+}
+function pressMove(e) {
+  if (!press) return;
+  if (!drag) {   // 還沒開始拖就移動了：當成捲動，取消
+    if (Math.hypot(e.clientX - press.x, e.clientY - press.y) > 8) pressEnd();
+    return;
+  }
+  e.preventDefault();
+  const others = [...drag.list.querySelectorAll('.todo')].filter(r => r !== drag.row);
+  const before = others.find(r => { const b = r.getBoundingClientRect(); return e.clientY < b.top + b.height / 2; }) || null;
+  if (before !== drag.row.nextElementSibling) drag.list.insertBefore(drag.row, before);
+  // 拖到畫面邊緣時自動捲動
+  if (e.clientY < 80) window.scrollBy(0, -8);
+  else if (e.clientY > innerHeight - 80) window.scrollBy(0, 8);
+}
+function pressUp() {
+  if (press && !drag && press.onText) { const id = press.row.dataset.id; pressEnd(); return editItem(id); }
+  pressEnd();
+}
+function pressEnd() {
+  document.removeEventListener('pointermove', pressMove);
+  document.removeEventListener('pointerup', pressUp);
+  document.removeEventListener('pointercancel', pressEnd);
+  if (press) clearTimeout(press.timer);
+  press = null;
+  if (!drag) return;
+  [...drag.list.querySelectorAll('.todo')].forEach((r, i) => { const n = findNote(r.dataset.id); if (n) n.order = i + 1; });
+  drag.row.classList.remove('dragging'); drag = null; save();
+}
+// 拖曳中擋住畫面捲動（手機）
+document.addEventListener('touchmove', e => { if (drag) e.preventDefault(); }, { passive: false });
+
+/* ===== 書的內頁（靈感、隨筆） ===== */
+function renderBook() {
+  const id = ui.book, cover = cat(id).color;
+  $('#v-book').style.background = cover;
+  const all = notesIn(id).sort((a, b) => b.created - a.created);
+  const starN = all.filter(n => n.star).length;
+  const list = ui.starOnly ? all.filter(n => n.star) : all;
+
+  $('#bookHead').innerHTML = `
+    <button class="back" onclick="back()" style="width:80px">${I.back}書架</button>
+    <h2>${esc(catName(id))}</h2>
+    <button class="filter ${ui.starOnly ? 'on' : ''}" style="${ui.starOnly ? `color:${cover}` : ''}" onclick="ui.starOnly=!ui.starOnly;renderBook()" aria-pressed="${ui.starOnly}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="${ui.starOnly ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">${I.star}</svg>標注 ${starN}
+    </button>`;
+
+  const days = [];
+  list.forEach(n => {
+    const key = new Date(n.created).toDateString();
+    let d = days[days.length - 1];
+    if (!d || d.key !== key) days.push(d = { key, t: n.created, items: [] });
+    d.items.push(n);
+  });
+  $('#bookList').className = list.length ? 'lines' : '';
+  $('#bookList').innerHTML = list.length ? days.map(d => `
+    <div class="day">
+      <div class="day-date"><b>${md(d.t)}</b><span>${wd(d.t)}</span></div>
+      <div class="day-entries">${d.items.map(entryHTML).join('')}</div>
+    </div>`).join('')
+    : `<div class="page-empty">${ui.starOnly ? '還沒有標注的筆記。' : '這本書還是空白的。'}</div>`;
+  $('#pageNo').textContent = all.length ? `— ${all.length} —` : '';
+  $('#bookSave').style.background = cover;
+}
+function entryHTML(n) {
+  const c = n.star ? '#B5813A' : '#BFB2A0', open = ui.openNote === n.id;
+  return `<div data-nid="${n.id}">
+    <div class="e-time">${hm(n.created)}</div>
+    <div class="e-row">
+      ${ui.editing === n.id ? '<div class="e-text"></div>' : `<p class="e-text" onclick="toggleEntry('${n.id}')">${esc(n.text)}</p>`}
+      <button class="star" onclick="toggleStar('${n.id}')" aria-pressed="${n.star}" aria-label="標注這則">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="${n.star ? c : 'none'}" stroke="${c}" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">${I.star}</svg>
+      </button>
+    </div>
+    ${open ? `<div class="e-tools">${toolsHTML(n)}</div>` : ''}
+  </div>`;
+}
+function toggleEntry(id) { const was = ui.openNote === id; resetTools(); ui.openNote = was ? null : id; renderBook(); }
+function toggleStar(id) { const n = findNote(id); n.star = !n.star; save(); renderBook(); }
+function saveBook() {
+  const el = $('#bookInput'), t = el.value.trim();
+  if (!t) return;
+  db.notes.push({ id: newId(), text: t, cat: ui.book, star: false, done: false, mood: null, created: Date.now() });
+  save(); el.value = ''; autoGrow(el); ui.starOnly = false; renderBook();
+  toast(`寫進「${catName(ui.book)}」了`);
+}
+
+/* ===== 記憶罐子 ===== */
+function renderJar() {
+  const mem = notesIn('memory').sort((a, b) => a.created - b.created);
+  if (!mem.some(m => m.id === ui.jarSel)) ui.jarSel = mem.length ? mem[mem.length - 1].id : null;
+  const i = mem.findIndex(m => m.id === ui.jarSel), m = mem[i];
+  const tools = m && (ui.editing === m.id || ui.moveFor === m.id || ui.moodFor === m.id);
+  $('#jar').innerHTML = `
+    <div class="study-head">
+      <button class="back" onclick="back()" style="width:64px">${I.back}書房</button>
+      <h2 style="font-family:var(--serif);font-weight:600;font-size:17px;letter-spacing:.3em;padding-left:.3em">${esc(catName('memory'))}</h2>
+      <span style="width:64px"></span>
+    </div>
+    <div class="jar-big">${jarHTML(true)}</div>
+    ${m ? `<div class="mem-card">
+        <div class="day-date"><b>${md(m.created)}</b><span>${wd(m.created)}</span></div>
+        <div class="mem-body">
+          <div class="mem-meta"><i style="background:${ballBg(moodOf(m.mood).color)}"></i><b>${esc(moodOf(m.mood).name)}</b><span style="color:var(--sub)">· ${hm(m.created)}</span></div>
+          ${ui.editing === m.id ? '' : `<p class="mem-text">${esc(m.text)}</p>`}
+          ${tools ? toolsHTML(m) : `<div class="mem-nav">
+            <div class="step"><button onclick="stepMem(-1)" ${i <= 0 ? 'disabled' : ''}>‹ 較舊</button><button onclick="stepMem(1)" ${i >= mem.length - 1 ? 'disabled' : ''}>較新 ›</button></div>
+            ${toolsHTML(m)}</div>`}
+        </div></div>`
+      : `<div class="mem-card" style="padding:18px;justify-content:center;font-family:var(--serif);color:var(--faint)">罐子還是空的，放進第一顆記憶吧。</div>`}
+    <div class="mem-compose">
+      <div class="q">這段記憶是什麼顏色？</div>
+      <div class="moods" role="radiogroup" aria-label="心情">${moodButtons()}</div>
+      <div class="row">
+        <label for="memInput" class="sr">放進一顆記憶</label>
+        <textarea id="memInput" rows="1" placeholder="放進一顆記憶…" oninput="autoGrow(this)"></textarea>
+        <button class="btn-ink" onclick="saveMem()">放進罐子</button>
+      </div>
+    </div>`;
+}
+function moodButtons() {
+  return db.moods.map(mo => `<button class="mood ${mo.id === ui.mood ? 'on' : ''}" role="radio" aria-checked="${mo.id === ui.mood}" onclick="pickDraftMood('${mo.id}')">
+    <i style="background:${ballBg(mo.color)}"></i><span>${esc(mo.name)}</span></button>`).join('');
+}
+function pickDraftMood(id) {
+  ui.mood = id;
+  document.querySelectorAll('#jar .mood').forEach((b, i) => {
+    const on = db.moods[i].id === id; b.classList.toggle('on', on); b.setAttribute('aria-checked', on);
+  });
+}
+function pickMem(id) { resetTools(); ui.jarSel = id; renderJar(); }
+function stepMem(d) {
+  const mem = notesIn('memory').sort((a, b) => a.created - b.created);
+  const i = mem.findIndex(m => m.id === ui.jarSel) + d;
+  if (mem[i]) { ui.jarSel = mem[i].id; renderJar(); }
+}
+function saveMem() {
+  const t = $('#memInput').value.trim();
+  if (!t) return;
+  const n = { id: newId(), text: t, cat: 'memory', star: false, done: false, mood: ui.mood, created: Date.now() };
+  db.notes.push(n); save(); ui.jarSel = n.id; renderJar();
+  toast('放進罐子了');
+}
+
+/* ===== 整理模式：一張接一張分類，分完自動換下一張 ===== */
+function startSort(firstId) {
+  resetTools();
+  ui.sortQueue = notesIn(null).sort((a, b) => b.created - a.created).map(n => n.id);
+  if (firstId) ui.sortQueue = [firstId, ...ui.sortQueue.filter(x => x !== firstId)];
+  ui.sortIdx = 0; ui.sorting = true; ui.sortAnim = true;
+  $('#sheetBg').classList.add('show');
+  renderSort();
+}
+function advanceSort(id) {
+  if (ui.sorting && ui.sortQueue[ui.sortIdx] === id) { ui.sortIdx++; ui.sortAnim = true; }
+}
+function skipSort() { resetTools(); ui.sortIdx++; ui.sortAnim = true; renderSort(); }
+function renderSort() {
+  const q = ui.sortQueue;
+  while (ui.sortIdx < q.length && !findNote(q[ui.sortIdx])) ui.sortIdx++;   // 跳過已刪掉的
+  const n = findNote(q[ui.sortIdx]);
+  const head = `<div class="sheet-top"><h3>分類${n ? `<span class="sort-count">${ui.sortIdx + 1} / ${q.length}</span>` : ''}</h3>
+    <button class="icon-btn" onclick="closeSheet()" aria-label="結束整理">✕</button></div>`;
+  if (!n) {
+    const left = notesIn(null).length;
+    $('#sheet').innerHTML = head + `<div class="sort-done">${left ? `這一輪整理完了，還有 ${left} 張先跳過的。` : '都分類好了。'}</div>
+      <button class="btn-ink" style="width:100%" onclick="closeSheet()">回到書房</button>`;
+    return;
+  }
+  const busy = ui.editing === n.id || ui.moodFor === n.id;
+  $('#sheet').innerHTML = head + `
+    <div class="sort-card ${ui.sortAnim ? 'enter' : ''}">
+      <div class="when">${md(n.created)} ${wd(n.created)}　${hm(n.created)}</div>
+      ${ui.editing === n.id ? '' : `<div class="txt">${esc(n.text)}</div>`}
+    </div>
+    ${busy ? toolsHTML(n) : `<div class="chips">${destChips(n)}</div>
+    <div class="sort-foot">
+      <div class="acts">
+        <button class="act" onclick="startEdit('${n.id}')" aria-label="編輯" title="編輯">${I.edit}</button>
+        <button class="act" onclick="delNote('${n.id}')" aria-label="刪除" title="刪除">${I.trash}</button>
+      </div>
+      <button class="skip" onclick="skipSort()">先跳過 ›</button>
+    </div>`}`;
+  ui.sortAnim = false;
+  if (ui.editing === n.id) { const el = $('#ie-' + n.id); if (el) el.focus(); }
+}
+
+/* ===== 搜尋：全部分類一起找 ===== */
+function renderResults() {
+  const q = ui.q.trim().toLowerCase();
+  if (!q) { $('#results').innerHTML = '<div class="search-empty">輸入關鍵字，找找以前寫過的。</div>'; return; }
+  const hits = db.notes.filter(n => n.text.toLowerCase().includes(q)).sort((a, b) => b.created - a.created);
+  $('#results').innerHTML = hits.length ? hits.map(n => {
+    const c = cat(n.cat);
+    const tag = n.cat === 'memory'
+      ? `<span class="tagc" style="background:${c.color}"><i style="background:${moodOf(n.mood).color}"></i>${esc(catName('memory'))}</span>`
+      : c ? `<span class="tagc ${c.light ? 'light' : ''}" style="background:${c.color}">${esc(catName(n.cat))}</span>`
+          : `<span class="tagc light" style="background:var(--paper);border:1px solid var(--line)">未分類</span>`;
+    return `<button class="result" onclick="openHit('${n.id}')">
+      <span class="meta">${tag}${md(n.created)} ${wd(n.created)}　${hm(n.created)}${n.star ? ' ★' : ''}${n.done ? ' · 已完成' : ''}</span>
+      <p>${highlight(n.text, q)}</p></button>`;
+  }).join('') : '<div class="search-empty">找不到相關的筆記。</div>';
+}
+function highlight(text, q) {
+  const low = text.toLowerCase(); let out = '', i = 0, j;
+  while ((j = low.indexOf(q, i)) !== -1) { out += esc(text.slice(i, j)) + '<mark>' + esc(text.slice(j, j + q.length)) + '</mark>'; i = j + q.length; }
+  return out + esc(text.slice(i));
+}
+function openHit(id) {   // 跳到那則筆記所在的地方
+  const n = findNote(id);
+  if (n.cat === 'idea' || n.cat === 'feel') return go('book', { book: n.cat, starOnly: false, focusId: id, openNote: id });
+  if (n.cat === 'memory') return go('jar', { jarSel: id });
+  if (LISTS.includes(n.cat)) { ui.open[n.cat] = true; return go('study', { focusId: id }); }
+  go('study'); startSort(id);
+}
+
+/* ===== 設定 ===== */
+function openSheet(html) { $('#sheet').innerHTML = html; $('#sheetBg').classList.add('show'); }
+function closeSheet() {
+  const wasSorting = ui.sorting;
+  $('#sheetBg').classList.remove('show'); ui.sorting = false;
+  if (wasSorting) { resetTools(); render(); }
+}
+function openSettings() {
+  openSheet(`
+    <div class="sheet-top"><h3>設定</h3><button class="icon-btn" onclick="closeSheet();render()" aria-label="關閉">✕</button></div>
+    <div class="sec"><h4>名稱</h4>
+      <div class="f-row"><label for="s-title">筆記本</label><input type="text" id="s-title" value="${esc(db.title)}" onchange="setTitle(this.value)"></div>
+      ${db.cats.map(c => `<div class="f-row"><label for="s-${c.id}">${esc(cat(c.id).name)}</label>
+        <input type="text" id="s-${c.id}" value="${esc(c.name)}" onchange="setCat('${c.id}',this.value)"></div>`).join('')}
+    </div>
+    <div class="sec"><h4>記憶的心情</h4><p class="hint">可以改名字和顏色。改了顏色，罐子裡的球也會一起換。</p>
+      ${db.moods.map((m, i) => `<div class="f-row">
+        <input type="color" value="${m.color}" aria-label="${esc(m.name)}的顏色" onchange="setMood(${i},'color',this.value)">
+        <input type="text" value="${esc(m.name)}" aria-label="心情名稱" onchange="setMood(${i},'name',this.value)"></div>`).join('')}
+    </div>
+    <div class="sec"><h4>匯出到 Notion</h4>
+      <p class="hint">下載 CSV（內容、類別、心情、標注、完成、建立時間），可在 Notion 匯入成資料庫，或合併進既有的資料庫。<br>上次匯出：${db.lastExport ? full(db.lastExport) : '還沒匯出過'}</p>
+      <button class="btn-s" onclick="exportCSV(true)">只匯出新的</button><button class="btn-s light" onclick="exportCSV(false)">匯出全部</button>
+      <div class="f-row" style="margin-top:6px"><label for="s-days" style="width:auto">超過</label>
+        <input type="number" id="s-days" min="1" value="${db.remindDays}" style="flex:none;width:70px" onchange="db.remindDays=Math.max(1,+this.value||7);save()">
+        <span style="font-size:13px;color:var(--sub)">天沒匯出，書房裡會提醒</span></div>
+    </div>
+    <div class="sec"><h4>備份與還原</h4><p class="hint">筆記只存在這支手機的瀏覽器裡。備份檔可以完整還原所有內容和設定。</p>
+      <button class="btn-s light" onclick="backup()">下載備份</button><button class="btn-s light" onclick="$('#restoreFile').click()">從備份還原</button>
+    </div>`);
+}
+function setTitle(v) { v = v.trim(); if (v) { db.title = v; save(); document.title = v; } }
+function setCat(id, v) { v = v.trim(); if (v) { db.cats.find(c => c.id === id).name = v; save(); } }
+function setMood(i, key, v) { v = String(v).trim(); if (v) { db.moods[i][key] = v; save(); } }
+
+/* ===== 匯出與備份 ===== */
+function download(content, name, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+const cell = s => { s = String(s ?? ''); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+function exportCSV(onlyNew) {
+  let list = [...db.notes];
+  if (onlyNew && db.lastExport) list = list.filter(n => n.created > db.lastExport);
+  if (!list.length) return toast('沒有新的筆記');
+  list.sort((a, b) => a.created - b.created);
+  const rows = [['內容', '類別', '心情', '標注', '完成', '建立時間'], ...list.map(n => [
+    n.text, catName(n.cat),
+    n.cat === 'memory' ? moodOf(n.mood).name : '',
+    n.cat === 'idea' || n.cat === 'feel' ? (n.star ? 'Yes' : 'No') : '',
+    LISTS.includes(n.cat) ? (n.done ? 'Yes' : 'No') : '',
+    full(n.created)])];
+  download('﻿' + rows.map(r => r.map(cell).join(',')).join('\r\n'), `${db.title}_${full(Date.now()).slice(0, 10)}.csv`, 'text/csv');
+  db.lastExport = Date.now(); save();
+  toast(`已匯出 ${list.length} 則`);
+  if ($('#sheetBg').classList.contains('show')) openSettings();
+  render();
+}
+function backup() { download(JSON.stringify(db, null, 1), `${db.title}備份_${full(Date.now()).slice(0, 10)}.json`, 'application/json'); }
+function restore(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!Array.isArray(d.notes)) throw 0;
+      if (!confirm(`用備份（${d.notes.length} 則）取代目前的 ${db.notes.length} 則？`)) return;
+      localStorage.setItem(KEY, JSON.stringify(d)); db = load(); save();
+      closeSheet(); render(); toast('已還原');
+    } catch (e) { toast('檔案格式不對'); }
+  };
+  r.readAsText(file);
+}
+
+/* ===== 啟動 ===== */
+['homeInput', 'bookInput'].forEach(id => $('#' + id).addEventListener('input', e => autoGrow(e.target)));
+$('#homeInput').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveHome(); });  // 電腦：Ctrl/⌘ + Enter
+$('#bookInput').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveBook(); });
+if (navigator.storage?.persist) navigator.storage.persist();
+history.replaceState({ view: 'home' }, '');
+save(); show();
+</script>
+</body>
+</html>
