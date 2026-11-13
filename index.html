@@ -92,7 +92,7 @@ svg{flex:none}
 .empty-loose{margin-top:10px;font-family:var(--serif);font-size:13px;color:var(--faint);padding:14px 0}
 
 .books{margin-top:10px;display:flex;justify-content:center;align-items:flex-end;gap:clamp(8px,3vw,36px)}
-.book{border:none;padding:0;display:flex;width:108px;height:150px;border-radius:3px 9px 9px 3px;overflow:hidden;box-shadow:2px 6px 14px rgba(60,45,30,.22)}
+.book{border:none;padding:0;display:flex;width:108px;height:136px;border-radius:3px 9px 9px 3px;overflow:hidden;box-shadow:2px 6px 14px rgba(60,45,30,.22)}
 .book .spine{width:11px;box-shadow:inset -2px 0 3px rgba(0,0,0,.18)}
 .book .cover{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#F4E9D6;
   background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 2px,transparent 2px,transparent 5px)}
@@ -119,7 +119,7 @@ svg{flex:none}
 .sticky:nth-child(even){transform:rotate(1.2deg)}
 .sticky.open{grid-column:1/-1;width:100%;transform:rotate(-.5deg)}
 .sticky .tape{position:absolute;top:-9px;left:50%;margin-left:-32px;width:64px;height:20px;background:rgba(255,253,249,.55);transform:rotate(3deg)}
-.sticky-head{width:100%;min-height:96px;border:none;background:none;padding:24px 10px 12px 16px;display:flex;justify-content:space-between;align-items:flex-start}
+.sticky-head{width:100%;min-height:78px;border:none;background:none;padding:20px 10px 10px 16px;display:flex;justify-content:space-between;align-items:flex-start}
 .sticky.open .sticky-head{min-height:68px}
 .sticky-head span{font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:.3em}
 .sticky-head svg{margin-top:4px;transition:transform .2s}
@@ -141,6 +141,77 @@ svg{flex:none}
 .todo-add input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:var(--serif);font-size:16px;color:var(--ink)}
 .todo-clear{border:none;background:none;margin-top:6px;font-size:12px;color:#6B5A2E;padding:6px 0}
 .sticky .fold{position:absolute;right:0;bottom:0;width:22px;height:22px;box-shadow:-1px -1px 2px rgba(60,45,30,.12)}
+
+/* ===== 閱讀：正在讀＋讀完的書，同一排書背（太多時左右滑動） ===== */
+.reads-wrap{position:relative;margin-top:6px}
+.reads-wrap::after{content:"";position:absolute;right:0;top:0;bottom:0;width:36px;background:linear-gradient(to right,rgba(239,232,220,0),var(--desk));pointer-events:none}
+.reads{display:flex;align-items:flex-end;gap:3px;height:140px;padding:0 36px 0 2px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.reads::-webkit-scrollbar{display:none}
+.bspine{position:relative;flex:none;border:none;padding:10px 0 0;border-radius:3px 3px 1px 1px;display:flex;justify-content:center;
+  font-family:var(--serif);font-size:12px;letter-spacing:.12em;writing-mode:vertical-rl;white-space:nowrap;overflow:hidden;box-shadow:inset -3px 0 4px rgba(0,0,0,.12)}
+.bspine.reading{font-weight:600;font-size:13px;overflow:visible;box-shadow:2px 4px 8px rgba(60,45,30,.25)}
+.bspine .ttl{overflow:hidden;max-height:calc(100% - 14px)}
+.ribbon{position:absolute;top:-12px;width:8px;height:22px;background:#B5523F;clip-path:polygon(0 0,100% 0,100% 100%,50% 80%,0 100%)}
+.spine-add{flex:none;width:30px;height:112px;margin-right:4px;border:1.5px dashed #BFB2A0;border-radius:3px;background:none;color:var(--sub);font-size:15px;display:grid;place-content:center}
+.bookend{flex:none;width:6px;height:64px;background:#B9AA92;border-radius:3px 3px 0 0;margin:0 6px 0 4px}
+.reads-hint{font-family:var(--serif);font-size:13px;color:var(--faint);align-self:center;padding-left:8px;white-space:nowrap}
+
+/* 一本書的頁面 */
+#v-read{padding-top:calc(12px + env(safe-area-inset-top));min-height:100dvh}
+.read-head{display:flex;justify-content:space-between;align-items:center;padding:0 12px 4px 14px;color:#F4E9D6}
+.read-head .state{font-size:12px;letter-spacing:.1em;opacity:.85}
+.finish-btn{min-height:36px;padding:0 14px;border:none;border-radius:99px;background:#F4E9D6;font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px}
+.read-title{padding:8px 22px 18px;color:#F4E9D6;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.read-title h2{font-family:var(--serif);font-weight:700;font-size:23px;letter-spacing:.1em;line-height:1.4}
+.read-title p{font-size:13px;opacity:.85;margin-top:2px}
+.read-title .act{color:#F4E9D6}
+#v-read .page{margin-right:8px}
+#v-read .page-label{height:32px;padding-left:90px;font-family:var(--serif);font-size:13px;color:var(--sub);letter-spacing:.1em;line-height:32px}
+
+.done-wrap{background:var(--desk);min-height:100dvh;padding:0 20px 60px}
+.done-head{display:flex;justify-content:space-between;align-items:center}
+.done-cover{display:flex;width:150px;height:210px;margin:8px auto 0;border-radius:3px 10px 10px 3px;overflow:hidden;box-shadow:3px 10px 22px rgba(60,45,30,.25)}
+.done-cover .sp{width:14px;box-shadow:inset -2px 0 3px rgba(0,0,0,.2)}
+.done-cover .cv{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 12px;
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 2px,transparent 2px,transparent 5px)}
+.done-cover .rl{width:56px;height:1px;opacity:.55;background:currentColor}
+.done-cover .tt{font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:.12em;text-align:center;line-height:1.5;word-break:break-word}
+.done-cover .au{font-size:12px;opacity:.85;margin-top:8px;text-align:center}
+.stamp-row{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:16px}
+.stamp{padding:3px 10px;border:1px solid #B5523F;border-radius:4px;color:#B5523F;font-family:var(--serif);font-weight:600;letter-spacing:.1em;transform:rotate(-3deg);font-size:13px}
+.stamp-row span:last-child{font-family:var(--serif);font-size:15px}
+/* 評分：五顆星，半顆為一單位（讀完的書才有） */
+.stars{display:inline-flex;gap:2px;vertical-align:middle}
+.rstar{position:relative;display:inline-block;flex:none}
+.rstar svg{display:block}
+.rstar .rfill{position:absolute;left:0;top:0;height:100%;overflow:hidden}
+.rate-box{display:flex;align-items:center;gap:10px;padding:6px 0 2px}
+.rate-box .stars{display:inline-flex}
+.rate-box .rstar{display:inline-block;cursor:pointer;margin:4px 3px}
+.rate-box .rval{font-family:var(--serif);font-size:14px;color:var(--sub);min-width:64px}
+.rate-row{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:10px;border:none;background:none;width:100%;min-height:36px}
+.rate-row .rval{font-family:var(--serif);font-size:13px;color:var(--sub)}
+.review{display:block;width:100%;text-align:left;border:none;margin-top:20px;background:var(--paper);border-radius:16px;box-shadow:0 2px 10px rgba(60,45,30,.08);padding:12px 18px 14px}
+.review h4{font-family:var(--serif);font-weight:400;font-size:13px;color:var(--sub);letter-spacing:.15em;height:28px}
+.review p{font-family:var(--serif);font-size:16px;line-height:32px;white-space:pre-wrap;word-break:break-word;
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,var(--rule) 31px,var(--rule) 32px)}
+.review p.empty{color:var(--faint)}
+.fold-btn{display:flex;width:100%;justify-content:space-between;align-items:center;margin-top:12px;border:none;background:var(--card);border-radius:16px;padding:0 16px;height:52px;
+  font-family:var(--serif);font-size:14px;box-shadow:0 1px 4px rgba(60,45,30,.06)}
+.fold-btn svg{transition:transform .2s}
+.fold-btn.open svg{transform:rotate(180deg)}
+.thoughts{margin-top:10px;background:var(--paper);border-radius:16px;padding:6px 10px 10px 0;position:relative}
+.thoughts .mline{position:absolute;top:0;bottom:0;left:76px;width:1px;background:var(--margin)}
+
+/* 書的表單（開始讀、讀完了、修改） */
+.field{display:block;background:var(--card);border-radius:14px;padding:10px 14px;margin-top:10px}
+.field span{display:block;font-size:13px;color:var(--sub)}
+.field input,.field textarea{display:block;width:100%;border:none;outline:none;background:transparent;font-family:var(--serif);font-size:16px;color:var(--ink);padding:4px 0 2px}
+.field textarea{min-height:160px;resize:vertical;line-height:32px;background:transparent repeating-linear-gradient(to bottom,transparent 0,transparent 31px,var(--rule) 31px,var(--rule) 32px)}
+.field-hint{font-size:11px;color:var(--sub);padding:4px 0 0 14px}
+.sheet .btn-ink.wide{width:100%;margin-top:16px;height:48px}
+.mini-book{display:flex;gap:14px;align-items:center;background:var(--card);border-radius:14px;padding:12px 14px}
+.mini-book i{width:44px;height:62px;flex:none;border-radius:2px 6px 6px 2px}
 
 /* ===== 書的內頁 ===== */
 #v-book{padding-top:calc(12px + env(safe-area-inset-top));padding-right:8px}
@@ -189,7 +260,7 @@ svg{flex:none}
 .mem-compose{margin-top:16px;background:var(--card);border-radius:22px;padding:12px 10px 10px;box-shadow:0 4px 20px rgba(60,45,30,.10)}
 .mem-compose .q{font-family:var(--serif);font-size:12px;color:var(--sub);padding-left:6px;letter-spacing:.06em}
 .moods{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin-top:6px}
-.mood{border:none;background:none;min-height:52px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0}
+.mood{border:none;background:none;min-height:44px;justify-content:center;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0}
 .mood i{width:26px;height:26px;border-radius:50%;box-shadow:0 1px 3px rgba(60,45,30,.18)}
 .mood span{font-size:11px;color:var(--sub)}
 .mood.on i{box-shadow:0 0 0 2px #FFFDF9,0 0 0 4px var(--ink)}
@@ -294,6 +365,9 @@ svg{flex:none}
 <!-- 記憶罐子 -->
 <section class="view" id="v-jar"><div class="wrap" id="jar"></div></section>
 
+<!-- 一本書（正在讀／讀完） -->
+<section class="view" id="v-read"><div class="wrap" id="read"></div></section>
+
 <!-- 搜尋 -->
 <section class="view" id="v-search"><div class="wrap">
   <div class="search-bar">
@@ -326,15 +400,16 @@ const CATS = [
   { id: 'buy',    name: '待買', color: '#EBCFC3', light: true },
 ];
 const LISTS = ['todo', 'buy'];   // 便利貼形式的清單（可打勾、可拖曳排序）
-const MOODS = [
-  { id: 'joy',   name: '樂樂', color: '#E2BE6A' },
-  { id: 'sad',   name: '憂憂', color: '#8FA9C4' },
-  { id: 'ennui', name: '悶悶', color: '#A8A39B' },
-  { id: 'anx',   name: '阿焦', color: '#E0A46E' },
-  { id: 'anger', name: '怒怒', color: '#C9786A' },
-  { id: 'fear',  name: '驚驚', color: '#A894BE' },
-  { id: 'calm',  name: '平靜', color: '#9DB38E' },
+const MOODS = [   // name：心情名稱（可在設定改）；colorName：設定裡顯示的「金色記憶球」
+  { id: 'joy',   name: '快樂', colorName: '金色', color: '#E2BE6A' },
+  { id: 'sad',   name: '傷心', colorName: '藍色', color: '#8FA9C4' },
+  { id: 'ennui', name: '鬱悶', colorName: '灰色', color: '#A8A39B' },
+  { id: 'anx',   name: '焦慮', colorName: '橘色', color: '#E0A46E' },
+  { id: 'anger', name: '生氣', colorName: '紅色', color: '#C9786A' },
+  { id: 'fear',  name: '害怕', colorName: '紫色', color: '#A894BE' },
+  { id: 'calm',  name: '平靜', colorName: '綠色', color: '#9DB38E' },
 ];
+const OLD_MOOD_NAMES = { 樂樂: '快樂', 憂憂: '傷心', 悶悶: '鬱悶', 阿焦: '焦慮', 怒怒: '生氣', 驚驚: '害怕' };
 const SPINE = { idea: '#6E4630', feel: '#4E5843' };
 const FOLD = { todo: '#E3CF86', buy: '#DDB9AB' };
 
@@ -362,7 +437,8 @@ const ui = {
   editing: null,    // 正在行內編輯的那則
   jarSel: null, mood: 'calm', open: { todo: false, buy: false },
   sorting: false, sortQueue: [], sortIdx: 0, sortAnim: false,   // 整理模式
-  q: '', focusId: null,                                          // 搜尋
+  q: '', focusId: null,
+  bookId: null, bookFor: null, showThoughts: false, rating: 0,              // 閱讀                                          // 搜尋
 };
 
 /* ===== 小工具 ===== */
@@ -381,7 +457,40 @@ const byOrder = (a, b) => (a.order ?? a.created) - (b.order ?? b.created);
 const findNote = id => db.notes.find(n => n.id === id);
 const ballBg = c => `radial-gradient(circle at 32% 28%,rgba(255,255,255,.8) 0,rgba(255,255,255,0) 42%),radial-gradient(circle at 70% 78%,rgba(60,45,30,.14) 0,rgba(60,45,30,0) 55%),${c}`;
 const newId = () => 'n' + Date.now() + Math.random().toString(36).slice(2, 6);
-const resetTools = () => { ui.openNote = ui.moveFor = ui.moodFor = ui.editing = null; };
+const resetTools = () => { ui.openNote = ui.moveFor = ui.moodFor = ui.bookFor = ui.editing = null; };
+
+/* 閱讀：書的資料放在 db.books；讀的時候寫的想法是 cat:'book' 的筆記，用 bookId 指向那本書 */
+const BOOK_COLORS = ['#8A5A3C', '#66715A', '#6D7B8A', '#A07A55', '#4E5843', '#9C6B5E', '#5F6F7E', '#B79A73', '#C9B48E', '#E2B7A8', '#A894BE', '#9DB38E'];
+const hash = s => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const isLight = hex => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255 > 0.6; };
+const inkOn = hex => isLight(hex) ? '#3B342C' : '#F4E9D6';
+const darker = hex => '#' + [16, 8, 0].map(s => Math.round((parseInt(hex.slice(1), 16) >> s & 255) * 0.78).toString(16).padStart(2, '0')).join('');
+const findBook = id => db.books.find(b => b.id === id);
+const thoughtsOf = id => db.notes.filter(n => n.cat === 'book' && n.bookId === id);
+const noteCat = n => n.cat === 'book' ? `閱讀《${findBook(n.bookId)?.title ?? ''}》` : catName(n.cat);
+const STAR_P = 'M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z';
+function starsHTML(v, size, clickable) {   // v：0–5，可有 .5
+  let out = '';
+  for (let i = 1; i <= 5; i++) {
+    const f = Math.max(0, Math.min(1, v - (i - 1)));
+    out += `<span class="rstar" style="width:${size}px;height:${size}px" ${clickable ? `onclick="rateClick(event,${i})"` : ''}>
+      <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#C9A25A" stroke-width="1.4" stroke-linejoin="round"><path d="${STAR_P}"/></svg>
+      <span class="rfill" style="width:${f * 100}%"><svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="#C9A25A" stroke="#C9A25A" stroke-width="1.4" stroke-linejoin="round"><path d="${STAR_P}"/></svg></span></span>`;
+  }
+  return `<span class="stars">${out}</span>`;
+}
+const rateText = v => v ? `${v} / 5` : '還沒評分';
+function rateBoxHTML() {
+  return `<span class="stars" role="slider" aria-label="評分" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${ui.rating || 0}">${starsHTML(ui.rating || 0, 30, true).replace(/^<span class="stars">|<\/span>$/g, '')}</span><span class="rval">${rateText(ui.rating)}</span>`;
+}
+function rateClick(e, i) {   // 點星星左半＝半顆，右半＝整顆；再點一次同一個分數＝取消
+  const r = e.currentTarget.getBoundingClientRect();
+  let v = (e.clientX - r.left) < r.width / 2 ? i - 0.5 : i;
+  if (v === ui.rating) v = 0;
+  ui.rating = v;
+  $('#rateBox').innerHTML = rateBoxHTML();
+}
+const dateInput = t => { const d = new Date(t); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
 
 function load() {
   let d = null;
@@ -395,12 +504,21 @@ function load() {
     if (name === '想做的事') name = '待辦';
     return { id: c.id, name };
   });
+  if (!Array.isArray(d.books)) d.books = [];
+  const bookIds = new Set(d.books.map(b => b.id));
   d.notes.forEach(n => {
+    // 讀書想法：書還在就留在書裡（萬一被舊版本放回未分類，也會自動放回原本那本書）
+    if (n.bookId && bookIds.has(n.bookId) && (n.cat === 'book' || n.cat === null)) { n.cat = 'book'; return; }
     if (!CATS.some(c => c.id === n.cat)) n.cat = null;
     n.star = !!n.star; n.done = !!n.done;
     if (n.cat === 'memory' && !n.mood) n.mood = 'calm';
   });
   if (!Array.isArray(d.moods) || !d.moods.length) d.moods = MOODS.map(m => ({ ...m }));
+  // 心情改用一般的名稱（樂樂→快樂…）；只改顯示名稱，記憶本身不受影響。自己改過的名稱會保留
+  d.moods.forEach(m => {
+    if (OLD_MOOD_NAMES[m.name]) m.name = OLD_MOOD_NAMES[m.name];
+    if (!m.colorName) m.colorName = MOODS.find(x => x.id === m.id)?.colorName || '';
+  });
   d.title = d.title || '隨手記';
   d.remindDays = d.remindDays || 7;
   d.lastExport = d.lastExport || null;
@@ -416,19 +534,22 @@ function autoGrow(el) { el.style.height = 'auto'; el.style.height = el.scrollHei
 /* ===== 換頁（支援手機的返回手勢） ===== */
 function go(view, extra = {}) {
   resetTools(); Object.assign(ui, extra, { view });
-  history.pushState({ view, book: ui.book }, '');
+  history.pushState({ view, book: ui.book, bookId: ui.bookId }, '');
   show();
 }
 function back() { history.back(); }
 window.addEventListener('popstate', e => {
   const s = e.state || { view: 'home' };
-  ui.view = s.view; if (s.book) ui.book = s.book; resetTools();
+  ui.view = s.view; if (s.book) ui.book = s.book; if (s.bookId) ui.bookId = s.bookId; resetTools();
+  if (ui.view === 'read' && !findBook(ui.bookId)) ui.view = 'study';
   closeSheet(); show();
 });
 function show() {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + ui.view));
   document.title = db.title;
-  const theme = { home: '#FCF8F0', study: '#EFE8DC', jar: '#EFE8DC', search: '#EFE8DC', book: cat(ui.book)?.color };
+  const rb = findBook(ui.bookId);
+  const theme = { home: '#FCF8F0', study: '#EFE8DC', jar: '#EFE8DC', search: '#EFE8DC', book: cat(ui.book)?.color,
+    read: rb ? (rb.status === 'reading' ? rb.color : '#EFE8DC') : '#EFE8DC' };
   document.querySelector('meta[name=theme-color]').content = theme[ui.view] || '#FCF8F0';
   render();
   window.scrollTo(0, 0);
@@ -444,6 +565,7 @@ function render() {
   if (ui.view === 'study') renderStudy();
   if (ui.view === 'book') renderBook();
   if (ui.view === 'jar') renderJar();
+  if (ui.view === 'read') renderRead();
   if (ui.sorting) renderSort();
 }
 
@@ -454,9 +576,16 @@ function toolsHTML(n) {
       <textarea id="ie-${n.id}">${esc(n.text)}</textarea>
       <div class="r"><button class="no" onclick="ui.editing=null;render()">取消</button><button class="ok" onclick="saveInline('${n.id}')">儲存</button></div>
     </div>`;
-  if (ui.moodFor === n.id) return `<div class="chips"><span class="lbl">什麼心情？</span>
-      ${db.moods.map(m => `<button class="mchip" onclick="moveTo('${n.id}','memory','${m.id}')"><i style="background:${ballBg(m.color)}"></i>${esc(m.name)}</button>`).join('')}
+  if (ui.moodFor === n.id) return `<div class="chips"><span class="lbl">什麼顏色？</span>
+      ${db.moods.map(m => `<button class="mchip" style="padding:0 6px" aria-label="${esc(m.name)}" title="${esc(m.name)}" onclick="moveTo('${n.id}','memory','${m.id}')"><i style="background:${ballBg(m.color)}"></i></button>`).join('')}
       <button class="chip ghost" onclick="ui.moodFor=null;render()">返回</button></div>`;
+  if (ui.bookFor === n.id) {
+    const list = [...db.books.filter(b => b.status === 'reading'), ...db.books.filter(b => b.status === 'done').sort((a, b) => b.finished - a.finished)]
+      .filter(b => !(n.cat === 'book' && n.bookId === b.id));
+    return `<div class="chips"><span class="lbl">哪一本書？</span>
+      ${list.map(b => `<button class="chip ${isLight(b.color) ? 'light' : ''}" style="background:${b.color}" onclick="moveTo('${n.id}','book','${b.id}')">${esc(b.title)}${b.status === 'reading' ? ' ·讀' : ''}</button>`).join('')}
+      <button class="chip ghost" onclick="ui.bookFor=null;render()">返回</button></div>`;
+  }
   if (ui.moveFor === n.id) return `<div class="chips"><span class="lbl">移動到</span>${destChips(n)}
       <button class="chip ghost" onclick="ui.moveFor=null;render()">取消</button></div>`;
   return `<div class="acts">
@@ -468,18 +597,21 @@ function toolsHTML(n) {
 function destChips(n) {
   return CATS.filter(c => c.id !== n.cat).map(c =>
       `<button class="chip ${c.light ? 'light' : ''}" style="background:${c.color}" onclick="moveTo('${n.id}','${c.id}')">${esc(catName(c.id))}</button>`).join('')
+    + (db.books.length ? `<button class="chip light" style="background:#E9DFCF" onclick="moveTo('${n.id}','book')">閱讀…</button>` : '')
     + (n.cat ? `<button class="chip light" style="background:var(--card);border:1px solid var(--line)" onclick="moveTo('${n.id}',null)">未分類</button>` : '');
 }
-function moveTo(id, c, mood) {
+function moveTo(id, c, extra) {   // extra：放進記憶時是心情、放進書時是 bookId
   const n = findNote(id);
-  if (c === 'memory' && !mood) { ui.moveFor = null; ui.moodFor = id; return render(); }
+  if (c === 'memory' && !extra) { ui.moveFor = null; ui.moodFor = id; return render(); }
+  if (c === 'book' && !extra) { ui.moveFor = null; ui.bookFor = id; return render(); }
   n.cat = c;
-  if (c === 'memory') n.mood = mood;
+  if (c === 'memory') n.mood = extra;
+  if (c === 'book') n.bookId = extra; else delete n.bookId;
   if (!LISTS.includes(c)) n.done = false;
   if (LISTS.includes(c)) n.order = Math.max(0, ...notesIn(c).map(x => x.order ?? 0)) + 1;
   advanceSort(id);
   save(); resetTools(); render();
-  toast(c ? `收進「${catName(c)}」了` : '放回未分類了');
+  toast(c === 'book' ? `夾進《${findBook(extra).title}》了` : c ? `收進「${catName(c)}」了` : '放回未分類了');
 }
 function startEdit(id) {
   resetTools(); ui.editing = id; ui.openNote = id; render();
@@ -493,11 +625,13 @@ function saveInline(id) {
 }
 /* 刪除：不跳確認框，直接刪掉，底部出現「復原」可以救回來 */
 let undoBuf = null;
-function removeNotes(ids, msg) {
+function removeNotes(ids, msg, bookIds = []) {
   const gone = db.notes.filter(n => ids.includes(n.id));
-  if (!gone.length) return;
+  const goneBooks = db.books.filter(b => bookIds.includes(b.id));
+  if (!gone.length && !goneBooks.length) return;
   db.notes = db.notes.filter(n => !ids.includes(n.id));
-  undoBuf = gone;
+  db.books = db.books.filter(b => !bookIds.includes(b.id));
+  undoBuf = { notes: gone, books: goneBooks };
   save(); resetTools(); render();
   $('#undoMsg').textContent = msg;
   const u = $('#undo'); u.classList.add('show');
@@ -505,7 +639,7 @@ function removeNotes(ids, msg) {
 }
 function undoDelete() {
   if (!undoBuf) return;
-  db.notes.push(...undoBuf); undoBuf = null;
+  db.notes.push(...undoBuf.notes); db.books.push(...undoBuf.books); undoBuf = null;
   $('#undo').classList.remove('show');
   save(); render(); toast('救回來了');
 }
@@ -533,7 +667,7 @@ function slots(W, H, b, top) {
 function jarHTML(big) {
   const s = big
     ? { W: 250, H: 300, b: 42, top: 24, lid: [172, 26], neck: [152, 12], r: '34px 34px 40px 40px', shine: [16, 22, 10, 220] }
-    : { W: 108, H: 130, b: 20, top: 10, lid: [74, 14], neck: [64, 7], r: '18px 18px 22px 22px', shine: [9, 10, 6, 84] };
+    : { W: 108, H: 116, b: 20, top: 8, lid: [74, 12], neck: [64, 6], r: '18px 18px 22px 22px', shine: [9, 10, 6, 74] };
   const spots = slots(s.W - 3, s.H - 3, s.b, s.top);
   const mem = notesIn('memory').sort((a, b) => a.created - b.created).slice(-spots.length);
   const balls = mem.map((m, i) => {
@@ -584,12 +718,41 @@ function renderStudy() {
     </div>
     <div class="plank"></div>
 
+    ${readsHTML()}
+
     <div class="label"><span>牆面</span></div>
     <div class="wall">${LISTS.map(stickyHTML).join('')}</div>`;
 }
+/* 閱讀那一排：＋、正在讀（抽出來、夾書籤）、書擋、讀完的書（越新越左） */
+function readsHTML() {
+  const reading = db.books.filter(b => b.status === 'reading').sort((a, b) => b.created - a.created);
+  const done = db.books.filter(b => b.status === 'done').sort((a, b) => b.finished - a.finished);
+  const spine = b => {
+    const fg = inkOn(b.color);
+    if (b.status === 'reading') {
+      const tilt = hash(b.id) % 2 ? 2 : -3;
+      return `<button class="bspine reading" style="width:32px;height:112px;background:${b.color};color:${fg};transform:translateY(-6px) rotate(${tilt}deg)"
+        onclick="go('read',{bookId:'${b.id}'})" aria-label="正在讀：${esc(b.title)}"><span class="ttl">${esc(b.title)}</span><span class="ribbon" style="left:${12 + hash(b.id) % 8}px"></span></button>`;
+    }
+    // 讀完的書：書背寬 20–28px，心得寫越多越厚；高度依書名微微不同
+    const w = 20 + Math.min(8, Math.floor((b.review || '').length / 80) + thoughtsOf(b.id).length);
+    const h = 96 + hash(b.id) % 24;
+    return `<button class="bspine" style="width:${w}px;height:${h}px;background:${b.color};color:${fg}" onclick="go('read',{bookId:'${b.id}',showThoughts:false})" aria-label="讀完：${esc(b.title)}"><span class="ttl">${esc(b.title)}</span></button>`;
+  };
+  return `
+    <div class="label"><span>閱讀</span>${db.books.length ? `<small>正在讀 ${reading.length} · 讀完 ${done.length}</small>` : ''}</div>
+    <div class="reads-wrap"><div class="reads">
+      <button class="spine-add" onclick="openNewBook()" aria-label="開始讀一本書">＋</button>
+      ${reading.map(spine).join('')}
+      ${reading.length && done.length ? '<span class="bookend"></span>' : ''}
+      ${done.map(spine).join('')}
+      ${db.books.length ? '' : '<span class="reads-hint">開始讀一本書</span>'}
+    </div></div>
+    <div class="plank"></div>`;
+}
 function toggleLoose(id) { const was = ui.openNote === id; resetTools(); ui.openNote = was ? null : id; renderStudy(); }
 function looseToolsHTML(n) {
-  if (ui.editing === n.id || ui.moodFor === n.id) return `<div style="margin-top:6px">${toolsHTML(n)}</div>`;
+  if (ui.editing === n.id || ui.moodFor === n.id || ui.bookFor === n.id) return `<div style="margin-top:6px">${toolsHTML(n)}</div>`;
   return `<div class="loose-tools">
       <div class="chips">${destChips(n)}</div>
       <div class="acts">
@@ -604,7 +767,7 @@ function bannerHTML() {
   const ref = db.lastExport || Math.min(...fresh.map(n => n.created));
   const days = Math.floor((Date.now() - ref) / 864e5);
   if (days < db.remindDays) return '';
-  return `<div class="banner"><span style="flex:1">有 ${fresh.length} 則新筆記還沒匯出${db.lastExport ? `（距上次 ${days} 天）` : ''}</span><button onclick="exportCSV(true)">匯出</button></div>`;
+  return `<div class="banner"><span style="flex:1">有 ${fresh.length} 則新筆記還沒備份${db.lastExport ? `（距上次 ${days} 天）` : ''}</span><button onclick="backup()">下載備份</button></div>`;
 }
 
 /* 便利貼清單：打勾劃掉、點文字編輯、拖曳 ⋮⋮ 排序 */
@@ -754,7 +917,28 @@ function entryHTML(n) {
     ${open ? `<div class="e-tools">${toolsHTML(n)}</div>` : ''}
   </div>`;
 }
-function toggleEntry(id) { const was = ui.openNote === id; resetTools(); ui.openNote = was ? null : id; renderBook(); }
+function toggleEntry(id) { const was = ui.openNote === id; resetTools(); ui.openNote = was ? null : id; render(); }
+/* 依日期分組的書頁（靈感、隨筆、讀書想法共用） */
+function daysHTML(list, itemFn) {
+  const days = [];
+  list.forEach(n => {
+    const key = new Date(n.created).toDateString();
+    let d = days[days.length - 1];
+    if (!d || d.key !== key) days.push(d = { key, t: n.created, items: [] });
+    d.items.push(n);
+  });
+  return days.map(d => `<div class="day">
+      <div class="day-date"><b>${md(d.t)}</b><span>${wd(d.t)}</span></div>
+      <div class="day-entries">${d.items.map(n => itemFn(n)).join('')}</div>
+    </div>`).join('');
+}
+function thoughtHTML(n) {   // 讀書想法：和書頁一樣，只是沒有星星
+  return `<div data-nid="${n.id}">
+    <div class="e-time">${hm(n.created)}</div>
+    ${ui.editing === n.id ? '' : `<p class="e-text" onclick="toggleEntry('${n.id}')">${esc(n.text)}</p>`}
+    ${ui.openNote === n.id ? `<div class="e-tools">${toolsHTML(n)}</div>` : ''}
+  </div>`;
+}
 function toggleStar(id) { const n = findNote(id); n.star = !n.star; save(); renderBook(); }
 function saveBook() {
   const el = $('#bookInput'), t = el.value.trim();
@@ -769,7 +953,7 @@ function renderJar() {
   const mem = notesIn('memory').sort((a, b) => a.created - b.created);
   if (!mem.some(m => m.id === ui.jarSel)) ui.jarSel = mem.length ? mem[mem.length - 1].id : null;
   const i = mem.findIndex(m => m.id === ui.jarSel), m = mem[i];
-  const tools = m && (ui.editing === m.id || ui.moveFor === m.id || ui.moodFor === m.id);
+  const tools = m && (ui.editing === m.id || ui.moveFor === m.id || ui.moodFor === m.id || ui.bookFor === m.id);
   $('#jar').innerHTML = `
     <div class="study-head">
       <button class="back" onclick="back()" style="width:64px">${I.back}書房</button>
@@ -780,7 +964,7 @@ function renderJar() {
     ${m ? `<div class="mem-card">
         <div class="day-date"><b>${md(m.created)}</b><span>${wd(m.created)}</span></div>
         <div class="mem-body">
-          <div class="mem-meta"><i style="background:${ballBg(moodOf(m.mood).color)}"></i><b>${esc(moodOf(m.mood).name)}</b><span style="color:var(--sub)">· ${hm(m.created)}</span></div>
+          <div class="mem-meta"><i style="background:${ballBg(moodOf(m.mood).color)}" title="${esc(moodOf(m.mood).name)}"></i><span style="color:var(--sub)">${hm(m.created)}</span></div>
           ${ui.editing === m.id ? '' : `<p class="mem-text">${esc(m.text)}</p>`}
           ${tools ? toolsHTML(m) : `<div class="mem-nav">
             <div class="step"><button onclick="stepMem(-1)" ${i <= 0 ? 'disabled' : ''}>‹ 較舊</button><button onclick="stepMem(1)" ${i >= mem.length - 1 ? 'disabled' : ''}>較新 ›</button></div>
@@ -798,8 +982,9 @@ function renderJar() {
     </div>`;
 }
 function moodButtons() {
-  return db.moods.map(mo => `<button class="mood ${mo.id === ui.mood ? 'on' : ''}" role="radio" aria-checked="${mo.id === ui.mood}" onclick="pickDraftMood('${mo.id}')">
-    <i style="background:${ballBg(mo.color)}"></i><span>${esc(mo.name)}</span></button>`).join('');
+  // 球的下面不放字；心情名稱放在 aria-label（讀屏用）和長按提示
+  return db.moods.map(mo => `<button class="mood ${mo.id === ui.mood ? 'on' : ''}" role="radio" aria-checked="${mo.id === ui.mood}" aria-label="${esc(mo.name)}" title="${esc(mo.name)}" onclick="pickDraftMood('${mo.id}')">
+    <i style="background:${ballBg(mo.color)}"></i></button>`).join('');
 }
 function pickDraftMood(id) {
   ui.mood = id;
@@ -819,6 +1004,154 @@ function saveMem() {
   const n = { id: newId(), text: t, cat: 'memory', star: false, done: false, mood: ui.mood, created: Date.now() };
   db.notes.push(n); save(); ui.jarSel = n.id; renderJar();
   toast('放進罐子了');
+}
+
+/* ===== 一本書：正在讀（隨時寫想法）／讀完（書封、日期、心得） ===== */
+function renderRead() {
+  const b = findBook(ui.bookId);
+  if (!b) return go('study');
+  const fg = inkOn(b.color);
+  const thoughts = thoughtsOf(b.id).sort((x, y) => y.created - x.created);
+  const sec = $('#v-read');
+
+  if (b.status === 'reading') {
+    sec.style.background = b.color;
+    $('#read').innerHTML = `
+      <div class="read-head" style="color:${fg}">
+        <button class="back" onclick="back()" style="width:80px">${I.back}書房</button>
+        <span class="state">正在讀</span>
+        <button class="finish-btn" style="color:${darker(b.color)}" onclick="openFinish()">${svg('<path d="M5 12l5 5 9-10"/>', 15, 2)}讀完了</button>
+      </div>
+      <div class="read-title" style="color:${fg}">
+        <div><h2>${esc(b.title)}</h2>${b.author ? `<p>${esc(b.author)}</p>` : ''}</div>
+        <button class="act" style="color:${fg}" onclick="openEditBook()" aria-label="修改書名或作者" title="修改">${I.edit}</button>
+      </div>
+      <div class="page">
+        <div class="mline"></div>
+        <div class="page-label">讀的時候想到的 · ${thoughts.length} 則</div>
+        <div class="${thoughts.length ? 'lines' : ''}">${thoughts.length ? daysHTML(thoughts, thoughtHTML)
+          : '<div class="page-empty" style="padding-top:8px">讀到有感覺的地方，就寫下來。<br><small style="font-size:12px">首頁隨手記下的想法，也可以從「未分類」移動到這本書。</small></div>'}</div>
+      </div>
+      <div class="composer"><div class="wrap"><div class="box">
+        <label for="readInput" class="sr">寫下讀到這裡的想法</label>
+        <textarea id="readInput" rows="1" placeholder="讀到這裡，想到…" oninput="autoGrow(this)"></textarea>
+        <button class="btn-ink" style="background:${b.color};color:${fg}" onclick="saveThought()">收藏</button>
+      </div></div></div>`;
+    return;
+  }
+
+  // 讀完的書
+  sec.style.background = 'var(--desk)';
+  $('#read').innerHTML = `<div class="done-wrap">
+    <div class="done-head">
+      <button class="back" onclick="back()">${I.back}書房</button>
+      <div class="acts">
+        <button class="act" onclick="openEditBook()" aria-label="修改" title="修改">${I.edit}</button>
+        <button class="act" onclick="rereadBook()" aria-label="移回正在讀" title="移回正在讀（重讀）">${svg('<path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v5h5"/>', 17)}</button>
+        <button class="act" onclick="delBook('${b.id}')" aria-label="刪除這本書" title="刪除這本書">${I.trash}</button>
+      </div>
+    </div>
+    <div class="done-cover" style="color:${fg}">
+      <span class="sp" style="background:${darker(b.color)}"></span>
+      <span class="cv" style="background-color:${b.color}">
+        <span class="rl"></span><span class="tt" style="font-size:${b.title.length > 8 ? 15 : b.title.length > 5 ? 16 : 19}px">${esc(b.title)}</span><span class="rl"></span>
+        ${b.author ? `<span class="au">${esc(b.author)}</span>` : ''}
+      </span>
+    </div>
+    <div class="stamp-row"><span class="stamp">讀完</span><span>${new Date(b.finished).getFullYear()} · ${md(b.finished)} ${wd(b.finished).replace(/^\d+ /, '')}</span></div>
+    <button class="rate-row" onclick="openEditBook()" aria-label="評分 ${rateText(b.rating)}，點一下修改">${starsHTML(b.rating || 0, 20, false)}<span class="rval">${b.rating ? b.rating : '點一下評分'}</span></button>
+    <button class="review" onclick="openEditBook(true)">
+      <h4>心得</h4>
+      ${b.review ? `<p>${esc(b.review)}</p>` : '<p class="empty">還沒寫心得，點這裡補上。</p>'}
+    </button>
+    ${thoughts.length ? `<button class="fold-btn ${ui.showThoughts ? 'open' : ''}" onclick="ui.showThoughts=!ui.showThoughts;resetTools();renderRead()" aria-expanded="${!!ui.showThoughts}">
+        <span>讀的時候想到的 · ${thoughts.length} 則</span>${I.chev}</button>
+      ${ui.showThoughts ? `<div class="thoughts"><div class="mline"></div><div class="lines">${daysHTML(thoughts, thoughtHTML)}</div></div>` : ''}` : ''}
+  </div>`;
+}
+function saveThought() {
+  const el = $('#readInput'), t = el.value.trim();
+  if (!t) return;
+  db.notes.push({ id: newId(), text: t, cat: 'book', bookId: ui.bookId, star: false, done: false, mood: null, created: Date.now() });
+  save(); renderRead(); toast('夾進書裡了');
+}
+function openNewBook() {
+  openSheet(`
+    <div class="sheet-top"><h3>開始讀一本書</h3><button class="icon-btn" onclick="closeSheet()" aria-label="關閉">✕</button></div>
+    <label class="field"><span>書名</span><input id="nb-title" autocomplete="off"></label>
+    <label class="field"><span>作者（可以不填）</span><input id="nb-author" autocomplete="off"></label>
+    <button class="btn-ink wide" onclick="createBook()">開始讀</button>`);
+  setTimeout(() => $('#nb-title').focus(), 50);
+}
+function createBook() {
+  const title = $('#nb-title').value.trim();
+  if (!title) return toast('先寫下書名');
+  const id = 'b' + Date.now() + Math.random().toString(36).slice(2, 5);
+  db.books.push({ id, title, author: $('#nb-author').value.trim(), status: 'reading', color: BOOK_COLORS[hash(title + id) % BOOK_COLORS.length],
+    created: Date.now(), finished: null, review: '' });
+  save(); closeSheet(); go('read', { bookId: id });
+}
+function openFinish() {
+  const b = findBook(ui.bookId);
+  ui.rating = b.rating || 0;
+  openSheet(`
+    <div class="sheet-top"><h3>這本書讀完了</h3><button class="icon-btn" onclick="closeSheet()" aria-label="還沒讀完，關閉">✕</button></div>
+    <div class="mini-book"><i style="background:${b.color};box-shadow:inset 5px 0 0 ${darker(b.color)}"></i>
+      <div><div style="font-family:var(--serif);font-weight:600">${esc(b.title)}</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:2px">${b.author ? esc(b.author) + ' · ' : ''}讀的時候寫了 ${thoughtsOf(b.id).length} 則想法</div></div></div>
+    <label class="field"><span>讀完日期</span><input type="date" id="fb-date" value="${dateInput(Date.now())}" max="${dateInput(Date.now())}"></label>
+    <div class="field-hint">預設今天，可以改</div>
+    <div class="field"><span>評分</span><div class="rate-box" id="rateBox">${rateBoxHTML()}</div></div>
+    <div class="field-hint">點星星左半邊是半顆；可以先不評</div>
+    <label class="field"><span>心得</span><textarea id="fb-review" placeholder="讀完之後，最想留下的是…">${esc(b.review || '')}</textarea></label>
+    <div class="field-hint">心得可以先空著，之後再補</div>
+    <button class="btn-ink wide" onclick="finishBook()">放上書架</button>`);
+}
+function pickedDate(v) {   // 選的是今天就用現在的時間，其他天用中午，排序比較自然
+  if (!v || v === dateInput(Date.now())) return Date.now();
+  const [y, m, d] = v.split('-').map(Number); return new Date(y, m - 1, d, 12).getTime();
+}
+function finishBook() {
+  const b = findBook(ui.bookId);
+  b.status = 'done'; b.finished = pickedDate($('#fb-date').value); b.review = $('#fb-review').value.trim(); b.rating = ui.rating || null;
+  save(); closeSheet(); ui.showThoughts = false; show(); toast('放上書架了');
+}
+function openEditBook(focusReview) {
+  const b = findBook(ui.bookId), done = b.status === 'done';
+  ui.rating = b.rating || 0;
+  openSheet(`
+    <div class="sheet-top"><h3>修改</h3><button class="icon-btn" onclick="closeSheet()" aria-label="關閉">✕</button></div>
+    <label class="field"><span>書名</span><input id="eb-title" value="${esc(b.title)}"></label>
+    <label class="field"><span>作者</span><input id="eb-author" value="${esc(b.author || '')}"></label>
+    ${done ? `<label class="field"><span>讀完日期</span><input type="date" id="eb-date" value="${dateInput(b.finished)}" max="${dateInput(Date.now())}"></label>
+      <div class="field"><span>評分</span><div class="rate-box" id="rateBox">${rateBoxHTML()}</div></div>
+      <div class="field-hint">點星星左半邊是半顆；再點一次同一個分數可以取消</div>
+      <label class="field"><span>心得</span><textarea id="eb-review" placeholder="讀完之後，最想留下的是…">${esc(b.review || '')}</textarea></label>` : ''}
+    <button class="btn-ink wide" onclick="saveBookInfo()">儲存</button>
+    ${done ? '' : `<div class="row-btns" style="display:flex;justify-content:flex-end;margin-top:8px"><button class="link" onclick="delBook('${b.id}')">刪除這本書</button></div>`}`);
+  if (focusReview) setTimeout(() => { const el = $('#eb-review'); el.focus(); el.setSelectionRange(el.value.length, el.value.length); }, 50);
+}
+function saveBookInfo() {
+  const b = findBook(ui.bookId), title = $('#eb-title').value.trim();
+  if (!title) return toast('書名不能空白');
+  b.title = title; b.author = $('#eb-author').value.trim();
+  if (b.status === 'done') {
+    const v = $('#eb-date').value;
+    if (v && v !== dateInput(b.finished)) b.finished = pickedDate(v);
+    b.review = $('#eb-review').value.trim();
+    b.rating = ui.rating || null;
+  }
+  save(); closeSheet(); renderRead();
+}
+function rereadBook() {   // 重讀：移回正在讀；原本的讀完日期和心得先保留，再讀完時可以改寫
+  const b = findBook(ui.bookId);
+  b.status = 'reading'; save(); show(); toast('移回正在讀了');
+}
+function delBook(id) {
+  closeSheet();
+  const b = findBook(id);
+  history.back();   // 回到書房
+  setTimeout(() => removeNotes(thoughtsOf(id).map(n => n.id), `刪除了《${b.title}》`, [id]), 60);
 }
 
 /* ===== 整理模式：一張接一張分類，分完自動換下一張 ===== */
@@ -846,7 +1179,7 @@ function renderSort() {
       <button class="btn-ink" style="width:100%" onclick="closeSheet()">回到書房</button>`;
     return;
   }
-  const busy = ui.editing === n.id || ui.moodFor === n.id;
+  const busy = ui.editing === n.id || ui.moodFor === n.id || ui.bookFor === n.id;
   $('#sheet').innerHTML = head + `
     <div class="sort-card ${ui.sortAnim ? 'enter' : ''}">
       <div class="when">${md(n.created)} ${wd(n.created)}　${hm(n.created)}</div>
@@ -869,16 +1202,22 @@ function renderResults() {
   const q = ui.q.trim().toLowerCase();
   if (!q) { $('#results').innerHTML = '<div class="search-empty">輸入關鍵字，找找以前寫過的。</div>'; return; }
   const hits = db.notes.filter(n => n.text.toLowerCase().includes(q)).sort((a, b) => b.created - a.created);
-  $('#results').innerHTML = hits.length ? hits.map(n => {
-    const c = cat(n.cat);
-    const tag = n.cat === 'memory'
+  const bookHits = db.books.filter(b => [b.title, b.author, b.review].some(s => (s || '').toLowerCase().includes(q)));
+  const booksHTML = bookHits.map(b => `<button class="result" onclick="go('read',{bookId:'${b.id}',showThoughts:false})">
+      <span class="meta"><span class="tagc ${isLight(b.color) ? 'light' : ''}" style="background:${b.color}">${b.status === 'reading' ? '正在讀' : '讀完'}</span>${b.status === 'done' ? `${md(b.finished)} ${wd(b.finished)}${b.rating ? `　★ ${b.rating}` : ''}` : ''}</span>
+      <p><b>《${highlight(b.title, q)}》</b>${b.author ? `　${highlight(b.author, q)}` : ''}${b.review && b.review.toLowerCase().includes(q) ? `<br>${highlight(b.review, q)}` : ''}</p></button>`).join('');
+  if (!hits.length && !bookHits.length) { $('#results').innerHTML = '<div class="search-empty">找不到相關的筆記。</div>'; return; }
+  $('#results').innerHTML = booksHTML + hits.map(n => {
+    const c = cat(n.cat), bk = n.cat === 'book' ? findBook(n.bookId) : null;
+    const tag = bk ? `<span class="tagc ${isLight(bk.color) ? 'light' : ''}" style="background:${bk.color}">《${esc(bk.title)}》</span>`
+      : n.cat === 'memory'
       ? `<span class="tagc" style="background:${c.color}"><i style="background:${moodOf(n.mood).color}"></i>${esc(catName('memory'))}</span>`
       : c ? `<span class="tagc ${c.light ? 'light' : ''}" style="background:${c.color}">${esc(catName(n.cat))}</span>`
           : `<span class="tagc light" style="background:var(--paper);border:1px solid var(--line)">未分類</span>`;
     return `<button class="result" onclick="openHit('${n.id}')">
       <span class="meta">${tag}${md(n.created)} ${wd(n.created)}　${hm(n.created)}${n.star ? ' ★' : ''}${n.done ? ' · 已完成' : ''}</span>
       <p>${highlight(n.text, q)}</p></button>`;
-  }).join('') : '<div class="search-empty">找不到相關的筆記。</div>';
+  }).join('');
 }
 function highlight(text, q) {
   const low = text.toLowerCase(); let out = '', i = 0, j;
@@ -889,6 +1228,7 @@ function openHit(id) {   // 跳到那則筆記所在的地方
   const n = findNote(id);
   if (n.cat === 'idea' || n.cat === 'feel') return go('book', { book: n.cat, starOnly: false, focusId: id, openNote: id });
   if (n.cat === 'memory') return go('jar', { jarSel: id });
+  if (n.cat === 'book') return go('read', { bookId: n.bookId, showThoughts: true, focusId: id });
   if (LISTS.includes(n.cat)) { ui.open[n.cat] = true; return go('study', { focusId: id }); }
   go('study'); startSort(id);
 }
@@ -908,20 +1248,19 @@ function openSettings() {
       ${db.cats.map(c => `<div class="f-row"><label for="s-${c.id}">${esc(cat(c.id).name)}</label>
         <input type="text" id="s-${c.id}" value="${esc(c.name)}" onchange="setCat('${c.id}',this.value)"></div>`).join('')}
     </div>
-    <div class="sec"><h4>記憶的心情</h4><p class="hint">可以改名字和顏色。改了顏色，罐子裡的球也會一起換。</p>
+    <div class="sec"><h4>記憶球</h4><p class="hint">括號裡的心情名稱、左邊的顏色都可以改。改了顏色，罐子裡的球也會一起換。</p>
       ${db.moods.map((m, i) => `<div class="f-row">
-        <input type="color" value="${m.color}" aria-label="${esc(m.name)}的顏色" onchange="setMood(${i},'color',this.value)">
-        <input type="text" value="${esc(m.name)}" aria-label="心情名稱" onchange="setMood(${i},'name',this.value)"></div>`).join('')}
+        <input type="color" value="${m.color}" aria-label="${esc(m.colorName)}記憶球的顏色" onchange="setMood(${i},'color',this.value)">
+        <span style="font-size:14px;white-space:nowrap">${esc(m.colorName)}記憶球（</span>
+        <input type="text" value="${esc(m.name)}" aria-label="${esc(m.colorName)}記憶球的心情名稱" onchange="setMood(${i},'name',this.value)">
+        <span style="font-size:14px">）</span></div>`).join('')}
     </div>
-    <div class="sec"><h4>匯出到 Notion</h4>
-      <p class="hint">下載 CSV（內容、類別、心情、標注、完成、建立時間），可在 Notion 匯入成資料庫，或合併進既有的資料庫。<br>上次匯出：${db.lastExport ? full(db.lastExport) : '還沒匯出過'}</p>
-      <button class="btn-s" onclick="exportCSV(true)">只匯出新的</button><button class="btn-s light" onclick="exportCSV(false)">匯出全部</button>
+    <div class="sec"><h4>備份與同步到 Notion</h4>
+      <p class="hint">筆記只存在這支手機的瀏覽器裡。每週按一次「下載備份」，把檔案放到 Notion「隨手記書櫃」的同步收件匣，Claude 會定期幫你更新到 Notion。備份檔也可以完整還原所有內容和設定。<br>上次備份：${db.lastExport ? full(db.lastExport) : '還沒備份過'}</p>
+      <button class="btn-s" onclick="backup()">下載備份</button><button class="btn-s light" onclick="$('#restoreFile').click()">從備份還原</button>
       <div class="f-row" style="margin-top:6px"><label for="s-days" style="width:auto">超過</label>
         <input type="number" id="s-days" min="1" value="${db.remindDays}" style="flex:none;width:70px" onchange="db.remindDays=Math.max(1,+this.value||7);save()">
-        <span style="font-size:13px;color:var(--sub)">天沒匯出，書房裡會提醒</span></div>
-    </div>
-    <div class="sec"><h4>備份與還原</h4><p class="hint">筆記只存在這支手機的瀏覽器裡。備份檔可以完整還原所有內容和設定。</p>
-      <button class="btn-s light" onclick="backup()">下載備份</button><button class="btn-s light" onclick="$('#restoreFile').click()">從備份還原</button>
+        <span style="font-size:13px;color:var(--sub)">天沒備份，書房裡會提醒</span></div>
     </div>`);
 }
 function setTitle(v) { v = v.trim(); if (v) { db.title = v; save(); document.title = v; } }
@@ -936,24 +1275,13 @@ function download(content, name, type) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 const cell = s => { s = String(s ?? ''); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-function exportCSV(onlyNew) {
-  let list = [...db.notes];
-  if (onlyNew && db.lastExport) list = list.filter(n => n.created > db.lastExport);
-  if (!list.length) return toast('沒有新的筆記');
-  list.sort((a, b) => a.created - b.created);
-  const rows = [['內容', '類別', '心情', '標注', '完成', '建立時間'], ...list.map(n => [
-    n.text, catName(n.cat),
-    n.cat === 'memory' ? moodOf(n.mood).name : '',
-    n.cat === 'idea' || n.cat === 'feel' ? (n.star ? 'Yes' : 'No') : '',
-    LISTS.includes(n.cat) ? (n.done ? 'Yes' : 'No') : '',
-    full(n.created)])];
-  download('﻿' + rows.map(r => r.map(cell).join(',')).join('\r\n'), `${db.title}_${full(Date.now()).slice(0, 10)}.csv`, 'text/csv');
+function backup() {   // 備份檔＝同步到 Notion 用的檔案
+  download(JSON.stringify(db, null, 1), `${db.title}備份_${full(Date.now()).slice(0, 10)}.json`, 'application/json');
   db.lastExport = Date.now(); save();
-  toast(`已匯出 ${list.length} 則`);
+  toast('備份下載好了');
   if ($('#sheetBg').classList.contains('show')) openSettings();
   render();
 }
-function backup() { download(JSON.stringify(db, null, 1), `${db.title}備份_${full(Date.now()).slice(0, 10)}.json`, 'application/json'); }
 function restore(file) {
   if (!file) return;
   const r = new FileReader();
@@ -961,7 +1289,7 @@ function restore(file) {
     try {
       const d = JSON.parse(r.result);
       if (!Array.isArray(d.notes)) throw 0;
-      if (!confirm(`用備份（${d.notes.length} 則）取代目前的 ${db.notes.length} 則？`)) return;
+      if (!confirm(`用備份（${d.notes.length} 則筆記、${(d.books || []).length} 本書）取代目前的 ${db.notes.length} 則筆記、${db.books.length} 本書？`)) return;
       localStorage.setItem(KEY, JSON.stringify(d)); db = load(); save();
       closeSheet(); render(); toast('已還原');
     } catch (e) { toast('檔案格式不對'); }
