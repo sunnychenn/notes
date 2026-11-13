@@ -144,8 +144,8 @@ svg{flex:none}
 
 /* ===== 閱讀：正在讀＋讀完的書，同一排書背（太多時左右滑動） ===== */
 .reads-wrap{position:relative;margin-top:6px}
-.reads-wrap::after{content:"";position:absolute;right:0;top:0;bottom:0;width:36px;background:linear-gradient(to right,rgba(239,232,220,0),var(--desk));pointer-events:none}
-.reads{display:flex;align-items:flex-end;gap:3px;height:140px;padding:0 36px 0 2px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.reads-wrap.more::after{content:"";position:absolute;right:0;top:0;bottom:0;width:28px;background:linear-gradient(to right,rgba(239,232,220,0),var(--desk));pointer-events:none}
+.reads{display:flex;align-items:flex-end;gap:3px;height:140px;padding:0 2px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .reads::-webkit-scrollbar{display:none}
 .bspine{position:relative;flex:none;border:none;padding:10px 0 0;border-radius:3px 3px 1px 1px;display:flex;justify-content:center;
   font-family:var(--serif);font-size:12px;letter-spacing:.12em;writing-mode:vertical-rl;white-space:nowrap;overflow:hidden;box-shadow:inset -3px 0 4px rgba(0,0,0,.12)}
@@ -153,7 +153,12 @@ svg{flex:none}
 .bspine .ttl{overflow:hidden;max-height:calc(100% - 14px)}
 .ribbon{position:absolute;top:-12px;width:8px;height:22px;background:#B5523F;clip-path:polygon(0 0,100% 0,100% 100%,50% 80%,0 100%)}
 .spine-add{flex:none;width:30px;height:112px;margin-right:4px;border:1.5px dashed #BFB2A0;border-radius:3px;background:none;color:var(--sub);font-size:15px;display:grid;place-content:center}
-.bookend{flex:none;width:6px;height:64px;background:#B9AA92;border-radius:3px 3px 0 0;margin:0 6px 0 4px}
+.bookend{flex:none;width:6px;height:64px;background:#B9AA92;border-radius:3px 3px 0 0;margin-left:4px}
+.reads-done{display:flex;align-items:flex-end;gap:3px;margin-left:auto;padding-left:12px}   /* margin-left:auto＝讀完的書靠右 */
+.swatches{display:flex;flex-wrap:wrap;gap:10px;padding:8px 0 4px}
+.swatch{width:30px;height:40px;border:none;border-radius:2px 6px 6px 2px;cursor:pointer;position:relative}
+.swatch::after{content:"";position:absolute;inset:-6px -5px}
+.swatch.on{box-shadow:0 0 0 2px #FFFDF9,0 0 0 4px var(--ink)}
 .reads-hint{font-family:var(--serif);font-size:13px;color:var(--faint);align-self:center;padding-left:8px;white-space:nowrap}
 
 /* 一本書的頁面 */
@@ -438,7 +443,7 @@ const ui = {
   jarSel: null, mood: 'calm', open: { todo: false, buy: false },
   sorting: false, sortQueue: [], sortIdx: 0, sortAnim: false,   // 整理模式
   q: '', focusId: null,
-  bookId: null, bookFor: null, showThoughts: false, rating: 0,              // 閱讀                                          // 搜尋
+  bookId: null, bookFor: null, showThoughts: false, rating: 0, bookColor: null,              // 閱讀                                          // 搜尋
 };
 
 /* ===== 小工具 ===== */
@@ -478,6 +483,9 @@ function starsHTML(v, size, clickable) {   // v：0–5，可有 .5
       <span class="rfill" style="width:${f * 100}%"><svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="#C9A25A" stroke="#C9A25A" stroke-width="1.4" stroke-linejoin="round"><path d="${STAR_P}"/></svg></span></span>`;
   }
   return `<span class="stars">${out}</span>`;
+}
+function swatchesHTML() {
+  return BOOK_COLORS.map(c => `<button class="swatch ${c === ui.bookColor ? 'on' : ''}" style="background:${c};box-shadow:${c === ui.bookColor ? '' : `inset 4px 0 0 ${darker(c)}`}" aria-label="選這個顏色" aria-pressed="${c === ui.bookColor}" onclick="ui.bookColor='${c}';$('#colorBox').innerHTML=swatchesHTML()"></button>`).join('');
 }
 const rateText = v => v ? `${v} / 5` : '還沒評分';
 function rateBoxHTML() {
@@ -722,8 +730,9 @@ function renderStudy() {
 
     <div class="label"><span>牆面</span></div>
     <div class="wall">${LISTS.map(stickyHTML).join('')}</div>`;
+  const r = $('#study .reads'); if (r) fadeReads(r);
 }
-/* 閱讀那一排：＋、正在讀（抽出來、夾書籤）、書擋、讀完的書（越新越左） */
+/* 閱讀那一排：左邊＋、正在讀（抽出來、夾書籤）；右邊讀完的書（越新越左）＋書擋 */
 function readsHTML() {
   const reading = db.books.filter(b => b.status === 'reading').sort((a, b) => b.created - a.created);
   const done = db.books.filter(b => b.status === 'done').sort((a, b) => b.finished - a.finished);
@@ -741,14 +750,16 @@ function readsHTML() {
   };
   return `
     <div class="label"><span>閱讀</span>${db.books.length ? `<small>正在讀 ${reading.length} · 讀完 ${done.length}</small>` : ''}</div>
-    <div class="reads-wrap"><div class="reads">
+    <div class="reads-wrap"><div class="reads" onscroll="fadeReads(this)">
       <button class="spine-add" onclick="openNewBook()" aria-label="開始讀一本書">＋</button>
       ${reading.map(spine).join('')}
-      ${reading.length && done.length ? '<span class="bookend"></span>' : ''}
-      ${done.map(spine).join('')}
       ${db.books.length ? '' : '<span class="reads-hint">開始讀一本書</span>'}
+      ${done.length ? `<div class="reads-done">${done.map(spine).join('')}<span class="bookend"></span></div>` : ''}
     </div></div>
     <div class="plank"></div>`;
+}
+function fadeReads(el) {   // 書多到要滑動、而且右邊還有書時，才顯示右邊的漸淡提示
+  el.parentElement.classList.toggle('more', el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
 }
 function toggleLoose(id) { const was = ui.openNote === id; resetTools(); ui.openNote = was ? null : id; renderStudy(); }
 function looseToolsHTML(n) {
@@ -1076,10 +1087,12 @@ function saveThought() {
   save(); renderRead(); toast('夾進書裡了');
 }
 function openNewBook() {
+  ui.bookColor = BOOK_COLORS[Math.floor(Math.random() * BOOK_COLORS.length)];
   openSheet(`
     <div class="sheet-top"><h3>開始讀一本書</h3><button class="icon-btn" onclick="closeSheet()" aria-label="關閉">✕</button></div>
     <label class="field"><span>書名</span><input id="nb-title" autocomplete="off"></label>
     <label class="field"><span>作者（可以不填）</span><input id="nb-author" autocomplete="off"></label>
+    <div class="field"><span>書的顏色</span><div class="swatches" id="colorBox">${swatchesHTML()}</div></div>
     <button class="btn-ink wide" onclick="createBook()">開始讀</button>`);
   setTimeout(() => $('#nb-title').focus(), 50);
 }
@@ -1087,7 +1100,7 @@ function createBook() {
   const title = $('#nb-title').value.trim();
   if (!title) return toast('先寫下書名');
   const id = 'b' + Date.now() + Math.random().toString(36).slice(2, 5);
-  db.books.push({ id, title, author: $('#nb-author').value.trim(), status: 'reading', color: BOOK_COLORS[hash(title + id) % BOOK_COLORS.length],
+  db.books.push({ id, title, author: $('#nb-author').value.trim(), status: 'reading', color: ui.bookColor || BOOK_COLORS[0],
     created: Date.now(), finished: null, review: '' });
   save(); closeSheet(); go('read', { bookId: id });
 }
@@ -1118,11 +1131,12 @@ function finishBook() {
 }
 function openEditBook(focusReview) {
   const b = findBook(ui.bookId), done = b.status === 'done';
-  ui.rating = b.rating || 0;
+  ui.rating = b.rating || 0; ui.bookColor = b.color;
   openSheet(`
     <div class="sheet-top"><h3>修改</h3><button class="icon-btn" onclick="closeSheet()" aria-label="關閉">✕</button></div>
     <label class="field"><span>書名</span><input id="eb-title" value="${esc(b.title)}"></label>
     <label class="field"><span>作者</span><input id="eb-author" value="${esc(b.author || '')}"></label>
+    <div class="field"><span>書的顏色</span><div class="swatches" id="colorBox">${swatchesHTML()}</div></div>
     ${done ? `<label class="field"><span>讀完日期</span><input type="date" id="eb-date" value="${dateInput(b.finished)}" max="${dateInput(Date.now())}"></label>
       <div class="field"><span>評分</span><div class="rate-box" id="rateBox">${rateBoxHTML()}</div></div>
       <div class="field-hint">點星星左半邊是半顆；再點一次同一個分數可以取消</div>
@@ -1134,7 +1148,7 @@ function openEditBook(focusReview) {
 function saveBookInfo() {
   const b = findBook(ui.bookId), title = $('#eb-title').value.trim();
   if (!title) return toast('書名不能空白');
-  b.title = title; b.author = $('#eb-author').value.trim();
+  b.title = title; b.author = $('#eb-author').value.trim(); b.color = ui.bookColor || b.color;
   if (b.status === 'done') {
     const v = $('#eb-date').value;
     if (v && v !== dateInput(b.finished)) b.finished = pickedDate(v);
